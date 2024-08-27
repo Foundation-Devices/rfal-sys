@@ -1,0 +1,15 @@
+[package]
+name = "rfal-sys"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+cty = "0.2.2"
+libc = { version = "0.2.158", default-features = false}
+
+[build-dependencies]
+cc = "1.1.15"
+bindgen = { version = "0.69.4", default-features = false }
+
+[profile.release]
+debug = true
