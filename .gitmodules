@@ -1,6 +1,0 @@
-[submodule "NFC-RFAL"]
-	path = NFC-RFAL
-	url = https://github.com/stm32duino/NFC-RFAL.git
-[submodule "ST25R95"]
-	path = ST25R95
-	url = https://github.com/stm32duino/ST25R95.git
