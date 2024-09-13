@@ -24,7 +24,7 @@
 
 /*! \file
  *
- *  \author
+ *  \author  
  *
  *  \brief RFAL Features/Capabilities Definition for ST25R95
  */
@@ -47,7 +47,7 @@
 */
 
 #define RFAL_SUPPORT_MODE_POLL_NFCA                true          /*!< RFAL Poll NFCA mode support switch    */
-#define RFAL_SUPPORT_MODE_POLL_NFCB                true          /*!< RFAL Poll NFCB mode support switch    */
+#define RFAL_SUPPORT_MODE_POLL_NFCB                true          /*!< RFAL Poll NFCB mode support switch    */    
 #define RFAL_SUPPORT_MODE_POLL_NFCF                true          /*!< RFAL Poll NFCF mode support switch    */
 #define RFAL_SUPPORT_MODE_POLL_NFCV                true          /*!< RFAL Poll NFCV mode support switch    */
 #define RFAL_SUPPORT_MODE_POLL_ACTIVE_P2P          false         /*!< RFAL Poll AP2P mode support switch    */
@@ -113,18 +113,18 @@
 */
 
 /*! RFAL Wake-Up Period/Timer */
-typedef enum
+typedef enum 
 {
     RFAL_WUM_PERIOD_300MS     = 0x12,     /*!< Wake-Up timer 300ms                                        */
 } rfalWumPeriod;
 
 
 /*! RFAL Wake-Up Mode configuration */
-typedef struct
+typedef struct 
 {
     rfalWumPeriod        period;          /*!< Wake-Up Timer period;how often measurement(s) is performed */
-
-    struct{
+    
+    struct{                               
         bool             enabled;         /*!< Inductive Amplitude measurement enabled                    */
         uint8_t          delta;           /*!< Delta between the reference and measurement to wake-up     */
         uint16_t         reference;       /*!< Reference to be used;RFAL_WUM_REFERENCE_AUTO sets it auto  */

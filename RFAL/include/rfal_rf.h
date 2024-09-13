@@ -314,11 +314,9 @@ typedef enum {
 
 /*! RFAL Compliance modes for upper modules  */
 typedef enum {
-    RFAL_COMPLIANCE_MODE_NFC = 0,                /*!< Perform with NFC Forum 1.1 compliance                            */
+    RFAL_COMPLIANCE_MODE_NFC,                /*!< Perform with NFC Forum 1.1 compliance                            */
     RFAL_COMPLIANCE_MODE_EMV,                /*!< Perform with EMVCo compliance                                    */
-    RFAL_COMPLIANCE_MODE_ISO,                 /*!< Perform with ISO10373 compliance                                 */
-
-    _RESERVED =0xFFFFFFFFU
+    RFAL_COMPLIANCE_MODE_ISO                 /*!< Perform with ISO10373 compliance                                 */
 }rfalComplianceMode;
 
 

@@ -8,6 +8,7 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
         .flag("-std=c99")
         .flag("-fno-short-enums")
         .flag("-mno-unaligned-access")
+        .define("USE_LOGGER", "LOGGER_ON")
         .define("ST25R95", "true")
         .define("ST25R95_DEBUG", "false")
         .define("ST25R95_INTERFACE_SPI", "true")
@@ -18,6 +19,7 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
         .include("NDEF/include")
         .include("NDEF/include/message")
         .include("NDEF/include/poller")
+        .file("utils/Src/utils.c")
         .file("RFAL/source/st25r95/st25r95.c")
         .file("RFAL/source/st25r95/st25r95_com.c")
         .file("RFAL/source/st25r95/st25r95_com_spi.c")
@@ -53,6 +55,7 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
         .rustified_enum("rfalNfcDeactivateType")
         .clang_arg("--target=armv7a-none-eabi")
         .clang_arg("-I.")
+        .clang_arg("-I./RFAL/include")
         .use_core()
         .ctypes_prefix("cty");
 

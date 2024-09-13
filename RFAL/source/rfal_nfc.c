@@ -181,9 +181,9 @@ ReturnCode rfalNfcDiscover( const rfalNfcDiscoverParam *disParams )
     {
         return RFAL_ERR_WRONG_STATE;
     }
-
+    
     /* Check valid parameters */
-    if( (disParams == NULL) || (disParams->devLimit > RFAL_NFC_MAX_DEVICES) || (disParams->devLimit == 0U)                                                 ||
+    if( (disParams == NULL) || (disParams->devLimit > RFAL_NFC_MAX_DEVICES) || (disParams->devLimit == 0U)                                                 || 
         ( (disParams->maxBR > RFAL_BR_1695) && (disParams->maxBR != RFAL_BR_KEEP) )                                                                        ||
         ( ((disParams->techs2Find & RFAL_NFC_POLL_TECH_F) != 0U)     && (disParams->nfcfBR != RFAL_BR_212) && (disParams->nfcfBR != RFAL_BR_424) )         ||
         ( (((disParams->techs2Find & RFAL_NFC_POLL_TECH_AP2P) != 0U) && (disParams->ap2pBR > RFAL_BR_424)) || (disParams->GBLen > RFAL_NFCDEP_GB_MAX_LEN) )  )
