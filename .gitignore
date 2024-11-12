@@ -1,0 +1,4 @@
+.*.sw*
+/target/
+rfal-sys/target/
+**/Cargo.lock

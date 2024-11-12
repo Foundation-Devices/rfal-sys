@@ -1,0 +1,206 @@
+diff --git a/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/include/rfal_utils.h b/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/include/rfal_utils.h
+index e5088ff..1ab8081 100644
+--- a/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/include/rfal_utils.h
++++ b/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/include/rfal_utils.h
+@@ -42,7 +42,6 @@
+ ******************************************************************************
+ */
+ #include <stdint.h>
+-#include <string.h>
+ 
+ 
+ /*
+diff --git a/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/rfal_analogConfig.c b/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/rfal_analogConfig.c
+index 966d073..caf0944 100644
+--- a/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/rfal_analogConfig.c
++++ b/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/rfal_analogConfig.c
+@@ -38,7 +38,7 @@
+ #include "rfal_chip.h"
+ #include "rfal_utils.h"
+ #include "rfal_platform.h"
+-
++#include <string.h>
+ 
+ 
+ 
+diff --git a/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/rfal_iso15693_2.c b/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/rfal_iso15693_2.c
+index a645f04..bcc44bc 100644
+--- a/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/rfal_iso15693_2.c
++++ b/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/rfal_iso15693_2.c
+@@ -37,6 +37,7 @@
+ #include "rfal_iso15693_2.h"
+ #include "rfal_crc.h"
+ #include "rfal_utils.h"
++#include <string.h>
+ 
+ /*
+  ******************************************************************************
+diff --git a/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/rfal_isoDep.c b/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/rfal_isoDep.c
+index fef6992..c3c1bf6 100644
+--- a/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/rfal_isoDep.c
++++ b/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/rfal_isoDep.c
+@@ -42,6 +42,7 @@
+ #include "rfal_isoDep.h"
+ #include "rfal_rf.h"
+ #include "rfal_utils.h"
++#include <string.h>
+ 
+ /*
+  ******************************************************************************
+diff --git a/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/rfal_nfc.c b/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/rfal_nfc.c
+index eee9ab1..9160b76 100644
+--- a/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/rfal_nfc.c
++++ b/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/rfal_nfc.c
+@@ -38,7 +38,7 @@
+ #include "rfal_nfc.h"
+ #include "rfal_utils.h"
+ #include "rfal_analogConfig.h"
+-
++#include <string.h>
+ 
+ /*
+ ******************************************************************************
+diff --git a/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/rfal_nfcDep.c b/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/rfal_nfcDep.c
+index 0d03983..8b1e238 100644
+--- a/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/rfal_nfcDep.c
++++ b/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/rfal_nfcDep.c
+@@ -44,6 +44,7 @@
+ #include "rfal_nfcDep.h"
+ #include "rfal_nfcf.h"
+ #include "rfal_utils.h"
++#include <string.h>
+ 
+ /*
+  ******************************************************************************
+diff --git a/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/rfal_nfca.c b/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/rfal_nfca.c
+index 0406a83..beed155 100644
+--- a/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/rfal_nfca.c
++++ b/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/rfal_nfca.c
+@@ -42,6 +42,7 @@
+  */
+ #include "rfal_nfca.h"
+ #include "rfal_utils.h"
++#include <string.h>
+ 
+ /*
+  ******************************************************************************
+diff --git a/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/rfal_nfcb.c b/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/rfal_nfcb.c
+index c679121..4ea390f 100644
+--- a/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/rfal_nfcb.c
++++ b/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/rfal_nfcb.c
+@@ -36,6 +36,7 @@
+  */
+ #include "rfal_nfcb.h"
+ #include "rfal_utils.h"
++#include <string.h>
+ 
+ /*
+  ******************************************************************************
+diff --git a/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/rfal_nfcf.c b/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/rfal_nfcf.c
+index b06e53f..e60040b 100644
+--- a/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/rfal_nfcf.c
++++ b/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/rfal_nfcf.c
+@@ -39,6 +39,7 @@
+  */
+ #include "rfal_nfcf.h"
+ #include "rfal_utils.h"
++#include <string.h>
+ 
+ /*
+  ******************************************************************************
+diff --git a/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/rfal_nfcv.c b/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/rfal_nfcv.c
+index 71285d8..a66e9d6 100644
+--- a/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/rfal_nfcv.c
++++ b/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/rfal_nfcv.c
+@@ -42,6 +42,7 @@
+  */
+ #include "rfal_nfcv.h"
+ #include "rfal_utils.h"
++#include <string.h>
+ 
+ /*
+  ******************************************************************************
+diff --git a/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/rfal_st25tb.c b/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/rfal_st25tb.c
+index d9115a5..4f41f7d 100644
+--- a/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/rfal_st25tb.c
++++ b/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/rfal_st25tb.c
+@@ -36,6 +36,7 @@
+  */
+ #include "rfal_st25tb.h"
+ #include "rfal_utils.h"
++#include <string.h>
+ 
+ /*
+  ******************************************************************************
+diff --git a/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/rfal_st25xv.c b/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/rfal_st25xv.c
+index 42f35bd..946a55d 100644
+--- a/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/rfal_st25xv.c
++++ b/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/rfal_st25xv.c
+@@ -40,6 +40,7 @@
+ #include "rfal_st25xv.h"
+ #include "rfal_nfcv.h"
+ #include "rfal_utils.h"
++#include <string.h>
+ 
+ /*
+  ******************************************************************************
+diff --git a/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/rfal_t1t.c b/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/rfal_t1t.c
+index 3b1a475..8782d12 100644
+--- a/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/rfal_t1t.c
++++ b/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/rfal_t1t.c
+@@ -39,6 +39,7 @@
+  */
+ #include "rfal_t1t.h"
+ #include "rfal_utils.h"
++#include <string.h>
+ 
+ /*
+  ******************************************************************************
+diff --git a/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/rfal_t2t.c b/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/rfal_t2t.c
+index ed82079..414c177 100644
+--- a/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/rfal_t2t.c
++++ b/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/rfal_t2t.c
+@@ -38,6 +38,7 @@
+  */
+ #include "rfal_t2t.h"
+ #include "rfal_utils.h"
++#include <string.h>
+ 
+  /*
+  ******************************************************************************
+diff --git a/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/rfal_t4t.c b/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/rfal_t4t.c
+index 26bf7fc..b91f496 100644
+--- a/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/rfal_t4t.c
++++ b/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/rfal_t4t.c
+@@ -43,6 +43,7 @@
+  */
+  #include "rfal_t4t.h"
+  #include "rfal_utils.h"
++ #include <string.h>
+  
+  /*
+  ******************************************************************************
+diff --git a/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/st25r95/rfal_rfst25r95.c b/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/st25r95/rfal_rfst25r95.c
+index 5f66520..64cbd2c 100644
+--- a/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/st25r95/rfal_rfst25r95.c
++++ b/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/st25r95/rfal_rfst25r95.c
+@@ -44,6 +44,7 @@
+ #include "rfal_nfcf.h"
+ #include "rfal_nfca.h"
+ #include "rfal_analogConfig.h"
++#include <string.h>
+ 
+ /*
+  ******************************************************************************
+diff --git a/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/st25r95/st25r95_com.c b/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/st25r95/st25r95_com.c
+index 6f985ca..cc1f781 100644
+--- a/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/st25r95/st25r95_com.c
++++ b/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/st25r95/st25r95_com.c
+@@ -41,6 +41,7 @@
+ #include "rfal_nfcb.h"
+ #include "rfal_nfcf.h"
+ #include "rfal_utils.h"
++#include <string.h>
+ 
+ /*
+ ******************************************************************************

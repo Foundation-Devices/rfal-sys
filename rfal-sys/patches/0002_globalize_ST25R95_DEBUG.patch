@@ -1,0 +1,24 @@
+diff --git a/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/st25r95/st25r95_com.c b/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/st25r95/st25r95_com.c
+index cc1f781..0d9344b 100644
+--- a/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/st25r95/st25r95_com.c
++++ b/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/st25r95/st25r95_com.c
+@@ -49,7 +49,6 @@
+ ******************************************************************************
+ */
+ 
+-#define ST25R95_DEBUG false
+ 
+ /*
+  ******************************************************************************
+diff --git a/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/st25r95/st25r95_com_spi.c b/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/st25r95/st25r95_com_spi.c
+index fc305e9..4bea04b 100644
+--- a/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/st25r95/st25r95_com_spi.c
++++ b/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/st25r95/st25r95_com_spi.c
+@@ -66,7 +66,6 @@
+ #define ST25R95_POLL_FLAG_DATA_CAN_BE_SEND               ST25R95_POLL_FLAG_DATA_CAN_BE_SEND_Msk                                                     /*!< 0x04 */
+ #define ST25R95_POLL_DATA_CAN_BE_SEND(Flags)             (((Flags) & ST25R95_POLL_FLAG_DATA_CAN_BE_SEND_Msk) == ST25R95_POLL_FLAG_DATA_CAN_BE_SEND) /*!< SPI send poll flag test*/
+ 
+-#define ST25R95_DEBUG false
+ 
+ /*
+  ******************************************************************************

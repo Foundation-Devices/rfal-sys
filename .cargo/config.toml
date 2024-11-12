@@ -1,0 +1,6 @@
+[env]
+DYLD_LIBRARY_PATH = '/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/'
+CROSS_COMPILE = "arm-none-eabi"
+
+[build]
+target = "armv7a-none-eabi"
