@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2024 Foundation Devices, Inc. <hello@foundation.xyz>
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 use crate::{
     ndefCapabilityContainer, ndefDeviceType, ndefInfo, ndefState, nfc::Device, result, Error,
     Result,
