@@ -10,7 +10,7 @@ Bindings to STSW-ST25R017 library for interacting with ST25R95 NFC chip.
 """
 
 [dependencies]
-rfal-sys = { path = "rfal-sys", version = "1.0.0" }
+rfal-sys = { path = "rfal-sys", version = "1.0.1" }
 
 [target.'cfg(not(feature = "alloc"))'.dependencies]
 heapless = { version = "0.8" }

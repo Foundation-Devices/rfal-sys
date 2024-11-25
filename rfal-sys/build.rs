@@ -1,23 +1,28 @@
-use std::env;
 use std::path::PathBuf;
 use std::process::Command;
+use std::{env, fs};
 
 pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     let src_dir = "ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST";
+    let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
 
-    let patch_files = [
-        "0001_localize_string_h.patch",
-        "0002_globalize_ST25R95_DEBUG.patch",
-    ];
+    let marker_file = out_dir.join("patched_marker");
+    if !marker_file.exists() {
+        let patch_files = [
+            "0001_localize_string_h.patch",
+            "0002_globalize_ST25R95_DEBUG.patch",
+        ];
 
-    for patch_file in patch_files.iter() {
-        Command::new("patch")
-            .arg("-p2")
-            .arg("--binary")
-            .arg("-i")
-            .arg(format!("patches/{patch_file}"))
-            .output()
-            .expect("failed to execute patch {:patch_file}");
+        for patch_file in patch_files.iter() {
+            Command::new("patch")
+                .arg("-p2")
+                .arg("--binary")
+                .arg("-i")
+                .arg(format!("patches/{patch_file}"))
+                .output()
+                .expect("failed to execute patch {:patch_file}");
+        }
+        fs::write(&marker_file, "patched").expect("Can't create marker file");
     }
 
     let mut builder = cc::Build::new();
@@ -84,7 +89,6 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
         ))
         .compile("rfal-sys");
 
-    let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
     let builder = bindgen::Builder::default()
         .header(format!("{src_dir}/RFAL/include/rfal_utils.h"))
         .header(format!("{src_dir}/RFAL/include/rfal_nfc.h"))
