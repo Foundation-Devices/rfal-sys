@@ -1,6 +1,6 @@
 [package]
 name = "rfal-sys"
-version = "1.0.1+1.7.0"
+version = "1.0.2+1.7.0"
 edition = "2021"
 description = """
 Native bindings to STSW-ST25R017 v1.7.0 library from ST.

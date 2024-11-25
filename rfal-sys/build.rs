@@ -6,7 +6,7 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     let src_dir = "ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST";
     let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
 
-    let marker_file = out_dir.join("patched_marker");
+    let marker_file = PathBuf::from(src_dir).join("patched_marker");
     if !marker_file.exists() {
         let patch_files = [
             "0001_localize_string_h.patch",
@@ -25,11 +25,13 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
         fs::write(&marker_file, "patched").expect("Can't create marker file");
     }
 
+    env::set_var("CC", "arm-none-eabi-gcc");
+
     let mut builder = cc::Build::new();
     builder
         .flag("-std=c99")
         .flag("-fno-short-enums")
-        .flag("-mno-unaligned-access")
+        .flag("-mno-unaligned-access") // this is arm-none-eabi dependant
         .define("USE_LOGGER", "LOGGER_ON")
         .define("ST25R95", "true")
         .define("ST25R95_DEBUG", "false")
