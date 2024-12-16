@@ -3,7 +3,7 @@
 
 [package]
 name = "rfal"
-version = "1.0.2"
+version = "1.1.0"
 edition = "2021"
 description = """
 Bindings to STSW-ST25R017 library for interacting with ST25R95 NFC chip.

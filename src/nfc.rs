@@ -95,6 +95,12 @@ impl Nfc {
             )
         })
     }
+    pub fn enter_wakeup_mode(&self) -> Result<()> {
+        result(unsafe { rfal_sys::rfalWakeUpModeStart(core::ptr::null()) })
+    }
+    pub fn exit_wakeup_mode(&self) -> Result<()> {
+        result(unsafe { rfal_sys::rfalWakeUpModeStop() })
+    }
 }
 
 #[derive(Default)]
