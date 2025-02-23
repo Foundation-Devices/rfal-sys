@@ -1,4 +1,4 @@
-use core::ffi::CStr;
+use core::ffi::{c_char, CStr};
 
 static mut RFAL_PLATFORM: Option<Platform> = None;
 
@@ -60,7 +60,7 @@ fn ffi_spi_tx_rx(tx: *const u8, rx: *mut u8, len: usize) {
 }
 
 #[no_mangle]
-fn ffi_handle_error(file: *const i8, line: i32) {
+fn ffi_handle_error(file: *const c_char, line: i32) {
     unsafe {
         let s = CStr::from_ptr(file);
         (RFAL_PLATFORM
@@ -76,7 +76,7 @@ fn ffi_handle_error(file: *const i8, line: i32) {
 /// string. If `msg` is not a valid pointer or does not point to a null-terminated string, this
 /// function may cause undefined behavior.
 #[no_mangle]
-pub unsafe fn ffi_log(msg: *const i8, len: usize) {
+pub unsafe fn ffi_log(msg: *const c_char, len: usize) {
     let s = CStr::from_ptr(msg);
     (RFAL_PLATFORM
         .as_ref()
