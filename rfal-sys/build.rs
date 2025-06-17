@@ -6,12 +6,21 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     let src_dir = "ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST";
     let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
 
+    let ce = fs::copy(
+        "licensed/st25r95_com_ce.c",
+        format!("{src_dir}/RFAL/source/st25r95/st25r95_com_ce.c"),
+    )
+    .is_ok();
+
     let marker_file = PathBuf::from(src_dir).join("patched_marker");
     if !marker_file.exists() {
-        let patch_files = [
+        let mut patch_files = vec![
             "0001_localize_string_h.patch",
             "0002_globalize_ST25R95_DEBUG.patch",
         ];
+        if ce {
+            patch_files.push("0003_card_emulation.patch");
+        }
 
         for patch_file in patch_files.iter() {
             Command::new("patch")
@@ -88,8 +97,11 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
         .file(format!("{src_dir}/NDEF/source/poller/ndef_poller_rf.c"))
         .file(format!(
             "{src_dir}/NDEF/source/poller/ndef_poller_message.c"
-        ))
-        .compile("rfal-sys");
+        ));
+    if ce {
+        builder.file(format!("{src_dir}/RFAL/source/st25r95/st25r95_com_ce.c"));
+    }
+    builder.compile("rfal-sys");
 
     let builder = bindgen::Builder::default()
         .header(format!("{src_dir}/RFAL/include/rfal_utils.h"))

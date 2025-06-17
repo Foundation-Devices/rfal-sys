@@ -1,0 +1,3 @@
+[submodule "rfal-sys/licensed"]
+	path = rfal-sys/licensed
+	url = https://github.com/Foundation-Devices/rfal-sys-priv.git
