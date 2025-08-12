@@ -52,7 +52,6 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
         .include(format!("{src_dir}/NDEF/include"))
         .include(format!("{src_dir}/NDEF/include/message"))
         .include(format!("{src_dir}/NDEF/include/poller"))
-        .file("src/utils.c")
         .file(format!("{src_dir}/RFAL/source/st25r95/st25r95.c"))
         .file(format!("{src_dir}/RFAL/source/st25r95/st25r95_com.c"))
         .file(format!("{src_dir}/RFAL/source/st25r95/st25r95_com_spi.c"))
