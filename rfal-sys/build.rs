@@ -23,13 +23,16 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
 
         for patch_file in patch_files.iter() {
-            Command::new("patch")
+            let patch_output = Command::new("patch")
                 .arg("-p2")
                 .arg("--binary")
                 .arg("-i")
                 .arg(format!("patches/{patch_file}"))
                 .output()
                 .expect("failed to execute patch {:patch_file}");
+            if !patch_output.status.success() {
+                panic!("Patch {patch_file} failed: {patch_output:?}");
+            }
         }
         fs::write(&marker_file, "patched").expect("Can't create marker file");
     }
