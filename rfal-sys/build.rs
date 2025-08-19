@@ -18,6 +18,7 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
             "0001_localize_string_h.patch",
             "0002_globalize_ST25R95_DEBUG.patch",
             "0003_big_spi_xfers.patch",
+            "0004_efficient_wait.patch",
         ];
         if ce {
             patch_files.push("9999_card_emulation.patch");
