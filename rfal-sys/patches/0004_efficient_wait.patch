@@ -1,0 +1,25 @@
+diff --git a/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/st25r95/st25r95_com_spi.c b/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/st25r95/st25r95_com_spi.c
+index e6d2248..34a2606 100644
+--- a/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/st25r95/st25r95_com_spi.c
++++ b/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/st25r95/st25r95_com_spi.c
+@@ -119,19 +119,11 @@ uint8_t st25r95SPISendReceiveByte(uint8_t data)
+ /*******************************************************************************/
+ ReturnCode st25r95SPIPollRead(uint32_t timeout)
+ {
+-    uint32_t timer;
+     ReturnCode retCode = RFAL_ERR_NONE;   
+-    
+-    timer = platformTimerCreate(timeout);
+-    while (platformGpioIsHigh(ST25R95_N_IRQ_OUT_PORT, ST25R95_N_IRQ_OUT_PIN) && (timeout != 0) && !platformTimerIsExpired(timer)) {;}
+-    
+-    if (platformGpioIsHigh(ST25R95_N_IRQ_OUT_PORT, ST25R95_N_IRQ_OUT_PIN))
++    if (platformSpiWaitIrqOut(timeout))
+     {
+         retCode = RFAL_ERR_TIMEOUT;
+     }
+-    
+-    platformTimerDestroy(timer);
+-    
+     return (retCode);
+ }
+ 

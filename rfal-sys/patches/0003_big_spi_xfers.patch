@@ -1,0 +1,24 @@
+diff --git a/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/st25r95/st25r95_com_spi.c b/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/st25r95/st25r95_com_spi.c
+index fc305e9..e6d2248 100644
+--- a/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/st25r95/st25r95_com_spi.c
++++ b/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/st25r95/st25r95_com_spi.c
+@@ -94,13 +94,16 @@ st25r95SPIRxContext st25r95SPIRxCtx;
+ /*******************************************************************************/
+ void st25r95SPIRxTx(uint8_t *txData, uint8_t *rxData, uint16_t length)
+ {
+-    uint8_t txByte = 0;
+-    uint8_t rxByte;
++    const uint8_t txDummy[1024] = {};
++    uint8_t rxDummy[1024] = {};
+     
+     while (length != 0)
+     {
+-        platformSpiTxRx((txData == NULL) ? &txByte : txData++, (rxData == NULL) ? &rxByte : rxData++, 1);
+-        length--;
++        uint16_t xfer_len = length > sizeof(txDummy) ? sizeof(txDummy) : length;
++        platformSpiTxRx((txData == NULL) ? txDummy : txData, (rxData == NULL) ? rxDummy : rxData, xfer_len);
++        length -= xfer_len;
++        txData += xfer_len;
++        rxData += xfer_len;
+     }
+ }

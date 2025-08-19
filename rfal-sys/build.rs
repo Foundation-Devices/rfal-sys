@@ -17,19 +17,24 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
         let mut patch_files = vec![
             "0001_localize_string_h.patch",
             "0002_globalize_ST25R95_DEBUG.patch",
+            "0003_big_spi_xfers.patch",
+            "0004_efficient_wait.patch",
         ];
         if ce {
-            patch_files.push("0003_card_emulation.patch");
+            patch_files.push("9999_card_emulation.patch");
         }
 
         for patch_file in patch_files.iter() {
-            Command::new("patch")
+            let patch_output = Command::new("patch")
                 .arg("-p2")
                 .arg("--binary")
                 .arg("-i")
                 .arg(format!("patches/{patch_file}"))
                 .output()
                 .expect("failed to execute patch {:patch_file}");
+            if !patch_output.status.success() {
+                panic!("Patch {patch_file} failed: {patch_output:?}");
+            }
         }
         fs::write(&marker_file, "patched").expect("Can't create marker file");
     }
