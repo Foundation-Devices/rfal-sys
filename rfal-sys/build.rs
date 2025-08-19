@@ -17,9 +17,10 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
         let mut patch_files = vec![
             "0001_localize_string_h.patch",
             "0002_globalize_ST25R95_DEBUG.patch",
+            "0003_big_spi_xfers.patch",
         ];
         if ce {
-            patch_files.push("0003_card_emulation.patch");
+            patch_files.push("9999_card_emulation.patch");
         }
 
         for patch_file in patch_files.iter() {
