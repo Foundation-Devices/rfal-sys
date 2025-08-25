@@ -1,8 +1,8 @@
 diff --git a/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/st25r95/st25r95_com_spi.c b/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/st25r95/st25r95_com_spi.c
-index fc305e9..e6d2248 100644
+index 3503d8d..e9f355c 100644
 --- a/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/st25r95/st25r95_com_spi.c
 +++ b/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/st25r95/st25r95_com_spi.c
-@@ -94,13 +94,16 @@ st25r95SPIRxContext st25r95SPIRxCtx;
+@@ -93,13 +93,16 @@ st25r95SPIRxContext st25r95SPIRxCtx;
  /*******************************************************************************/
  void st25r95SPIRxTx(uint8_t *txData, uint8_t *rxData, uint16_t length)
  {
@@ -22,3 +22,4 @@ index fc305e9..e6d2248 100644
 +        rxData += xfer_len;
      }
  }
+ 

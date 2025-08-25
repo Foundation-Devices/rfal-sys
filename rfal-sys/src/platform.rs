@@ -86,12 +86,12 @@ fn ffi_handle_error(file: *const c_char, line: i32) {
 /// string. If `msg` is not a valid pointer or does not point to a null-terminated string, this
 /// function may cause undefined behavior.
 #[no_mangle]
-pub unsafe fn ffi_log(msg: *const c_char, len: usize) {
+pub unsafe fn ffi_log(msg: *const c_char, val: usize) {
     let s = CStr::from_ptr(msg);
     (RFAL_PLATFORM
         .as_ref()
         .expect("call rfal_platform_set first")
-        .log)(s, len);
+        .log)(s, val);
 }
 
 #[no_mangle]

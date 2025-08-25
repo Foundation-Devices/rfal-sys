@@ -16,8 +16,7 @@ pub use error::*;
 pub use ndef::*;
 pub use nfc::*;
 pub use rfal_sys::{
-    ndefAttribInfoBlockT3T, ndefCapabilityContainer, ndefCapabilityContainerT1T,
-    ndefCapabilityContainerT2T, ndefCapabilityContainerT4T, ndefCapabilityContainerT5T,
+    ndefCapabilityContainer, ndefCapabilityContainerT1T, ndefCapabilityContainerT2T,
     ndefDeviceType, ndefInfo, ndefState, rfalBitRate, rfalComplianceMode, rfalLmNfcidLen,
     rfalNfcDevType, rfalNfcDiscoverParam, rfalNfcState, rfalNfcaListenDevice, Platform,
     RFAL_FWT_NONE, RFAL_NFC_LISTEN_TECH_A, RFAL_NFC_POLL_TECH_A, RFAL_NFC_TECH_NONE,

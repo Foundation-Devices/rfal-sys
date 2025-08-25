@@ -1,8 +1,8 @@
 diff --git a/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/st25r95/st25r95_com_spi.c b/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/st25r95/st25r95_com_spi.c
-index e6d2248..34a2606 100644
+index e9f355c..712ff0b 100644
 --- a/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/st25r95/st25r95_com_spi.c
 +++ b/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/st25r95/st25r95_com_spi.c
-@@ -119,19 +119,11 @@ uint8_t st25r95SPISendReceiveByte(uint8_t data)
+@@ -118,19 +118,11 @@ uint8_t st25r95SPISendReceiveByte(uint8_t data)
  /*******************************************************************************/
  ReturnCode st25r95SPIPollRead(uint32_t timeout)
  {
