@@ -45,6 +45,7 @@
 */
 
 extern void ffi_gpio_set(uint32_t port, uint32_t pin, bool state);
+extern bool ffi_gpio_get(uint32_t port, uint32_t pin);
 
 extern void ffi_delay_ms(uint32_t delay);
 extern uint32_t ffi_get_ticks_ms(void);
@@ -57,7 +58,6 @@ extern uint32_t ffi_irq_in(void);
 extern void ffi_spi_deselect(void);
 extern void ffi_spi_select(void);
 extern void ffi_spi_tx_rx(const uint8_t* tx, uint8_t* rx, size_t len);
-extern bool ffi_spi_wait_irq_out(uint32_t timeout);
 
 /*
 ******************************************************************************
@@ -65,6 +65,8 @@ extern bool ffi_spi_wait_irq_out(uint32_t timeout);
 ******************************************************************************
 */
 
+#define ST25R95_N_IRQ_OUT_PIN        ffi_irq_out()         /*!< GPIO pin used for ST25R95 nIRQ_OUT            */
+#define ST25R95_N_IRQ_OUT_PORT       ffi_irq_out()         /*!< GPIO port used for ST25R95 nIRQ_OUT           */
 #define ST25R95_N_IRQ_IN_PIN         ffi_irq_in()          /*!< GPIO pin used for ST25R95 nIRQ_OIN            */
 #define ST25R95_N_IRQ_IN_PORT        ffi_irq_in()          /*!< GPIO port used for ST25R95 nIRQ_OUT           */
 
@@ -80,6 +82,8 @@ extern bool ffi_spi_wait_irq_out(uint32_t timeout);
 #define platformGpioSet(port, pin)         ffi_gpio_set((port), (pin), true)     /*!< Turns the given GPIO High                   */
 #define platformGpioClear(port, pin)       ffi_gpio_set((port), (pin), false)    /*!< Turns the given GPIO Low                    */
 #define platformGpioToggle(port, pin)      ffi_gpio_set((port), (pin), !ffi_gpio_get((port), (pin))) /*!< Toggles the given GPIO  */
+#define platformGpioIsHigh(port, pin)      (ffi_gpio_get((port), (pin)) == true) /*!< Checks if the given LED is High             */
+#define platformGpioIsLow(port, pin)       (!platformGpioIsHigh((port), (pin)))  /*!< Checks if the given LED is Low              */
 
 #define platformGetSysTick()               ffi_get_ticks_ms()                    /*!< Get System Tick ( 1 tick = 1 ms)            */
 #define platformTimerCreate(t)             (platformGetSysTick()+(t))            /*!< Create a timer with the given time (ms)     */
@@ -91,7 +95,6 @@ extern bool ffi_spi_wait_irq_out(uint32_t timeout);
 #define platformSpiSelect()                ffi_spi_select()                      /*!< SPI SS\CS: Chip|Slave Select                */
 #define platformSpiDeselect()              ffi_spi_deselect()                    /*!< SPI SS\CS: Chip|Slave Deselect              */
 #define platformSpiTxRx(txBuf, rxBuf, len) ffi_spi_tx_rx(txBuf, rxBuf, len)      /*!< SPI transceive                              */
-#define platformSpiWaitIrqOut(t)           ffi_spi_wait_irq_out(t)               /*!< Wait for IRQ_OUT to be LOW (with timout)    */
 
 extern char* hex2Str(unsigned char * data, size_t dataLen);
 extern int logString(const char* format, ...);
