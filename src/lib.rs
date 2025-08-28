@@ -39,4 +39,10 @@ impl Rfal {
             ndef: Ndef::default(),
         })
     }
+
+    pub fn reset(&mut self) {
+        self.discover = Discover::default();
+        self.nfc = Nfc::default();
+        self.ndef = Ndef::default();
+    }
 }
