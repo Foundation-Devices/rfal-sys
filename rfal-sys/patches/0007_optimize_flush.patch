@@ -1,5 +1,5 @@
 diff --git a/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/st25r95/st25r95_com_spi.c b/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/st25r95/st25r95_com_spi.c
-index 656c464..5be9642 100644
+index 656c464..30e5a0d 100644
 --- a/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/st25r95/st25r95_com_spi.c
 +++ b/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/st25r95/st25r95_com_spi.c
 @@ -423,7 +423,8 @@ ReturnCode st25r95SPICompleteRx(void)
@@ -38,7 +38,7 @@ index 656c464..5be9642 100644
              /* Flush ST25R95 fifo */
 -            st25r95FlushChipSPIBuffer();
 +            // st25r95FlushChipSPIBuffer(); // we know the number of byte to flush, no need to brutally do a SPI frame of 530 bytes !
-+            st25r95SPIRxTx(NULL, NULL, len);
++            st25r95SPIRxTx(NULL, NULL, len + 3);
              additionalRespBytesNb = 0;
              retCode = RFAL_ERR_NOMEM;
              break;
