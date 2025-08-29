@@ -1,5 +1,5 @@
 diff --git a/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/st25r95/st25r95_com_spi.c b/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/st25r95/st25r95_com_spi.c
-index 656c464..6428394 100644
+index 656c464..5be9642 100644
 --- a/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/st25r95/st25r95_com_spi.c
 +++ b/rfal-sys/ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST/RFAL/source/st25r95/st25r95_com_spi.c
 @@ -423,7 +423,8 @@ ReturnCode st25r95SPICompleteRx(void)
@@ -12,3 +12,33 @@ index 656c464..6428394 100644
          len = 0;
      }
      
+@@ -446,7 +447,8 @@ ReturnCode st25r95SPICompleteRx(void)
+         if (len < additionalRespBytesNb)
+         {
+             /* Flush ST25R95 fifo */
+-            st25r95FlushChipSPIBuffer();
++            // st25r95FlushChipSPIBuffer(); // we know the number of byte to flush, no need to brutally do a SPI frame of 530 bytes !
++            st25r95SPIRxTx(NULL, NULL, len);
+             retCode = RFAL_ERR_SYSTEM;
+             break;
+         }
+@@ -460,7 +462,8 @@ ReturnCode st25r95SPICompleteRx(void)
+             if (len < 2)
+             {
+                 /* Flush ST25R95 fifo */
+-                st25r95FlushChipSPIBuffer();
++                // st25r95FlushChipSPIBuffer(); // we know the number of byte to flush, no need to brutally do a SPI frame of 530 bytes !
++                st25r95SPIRxTx(NULL, NULL, len);
+                 additionalRespBytesNb = 0;
+                 retCode = RFAL_ERR_SYSTEM;
+                 break;
+@@ -477,7 +480,8 @@ ReturnCode st25r95SPICompleteRx(void)
+             ((!st25r95SPIRxCtx.rmvCRC) && (st25r95SPIRxCtx.protocol == ST25R95_PROTOCOL_ISO18092) && ((len + 3U) > st25r95SPIRxCtx.rxBufLen))) /* same + 2 extra bytes room to append CRC */
+         {
+             /* Flush ST25R95 fifo */
+-            st25r95FlushChipSPIBuffer();
++            // st25r95FlushChipSPIBuffer(); // we know the number of byte to flush, no need to brutally do a SPI frame of 530 bytes !
++            st25r95SPIRxTx(NULL, NULL, len);
+             additionalRespBytesNb = 0;
+             retCode = RFAL_ERR_NOMEM;
+             break;
