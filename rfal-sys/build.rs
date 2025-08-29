@@ -20,6 +20,7 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
             "0003_big_spi_xfers.patch",
             "0005_nfc_a_only.patch",
             "0006_optimize_reg_modify.patch",
+            "0007_optimize_flush.patch",
         ];
         if ce {
             patch_files.push("9999_card_emulation.patch");
