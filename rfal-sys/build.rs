@@ -42,6 +42,9 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     env::set_var("CC", "arm-none-eabi-gcc");
+    env::set_var("CXX", "arm-none-eabi-g++");
+    env::set_var("AR", "arm-none-eabi-ar");
+    env::set_var("RANLIB", "arm-none-eabi-ranlib");
 
     let mut builder = cc::Build::new();
     builder
@@ -109,7 +112,37 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
     builder.compile("rfal-sys");
 
-    let builder = bindgen::Builder::default()
+    // Run arm-none-eabi-gcc -print-libgcc-file-name
+    let output = Command::new("arm-none-eabi-gcc")
+        .arg("-print-libgcc-file-name")
+        .output()
+        .ok()
+        .expect("Failed to run arm-none-eabi-gcc -print-libgcc-file-name");
+    // Check if the command was successful
+    if !output.status.success() {
+        panic!("Failed to run arm-none-eabi-gcc, did you installed it ?");
+    }
+    // Convert output to string and trim
+    let libgcc_path = String::from_utf8_lossy(&output.stdout).trim().to_string();
+    // libgcc.a is typically in
+    // /usr/lib/gcc/arm-none-eabi/13.2.1/libgcc.a on ubuntu (manual and docker)
+    // /nix/store/jxx6k4rqv4bygf1v8rm62hrl5dw91riw-gcc-arm-embedded-14.3.rel1/bin/../lib/gcc/arm-none-eabi/14.3.1/libgcc.a on nixos (flake)
+    let version_path = PathBuf::from(&libgcc_path)
+        .parent()
+        .map(|p| p.to_path_buf())
+        .expect("Failed to get version directory");
+    // println!("cargo:warning=version_path: {}", version_path.display());
+    let nixpkg_path = PathBuf::from(&libgcc_path)
+        .parent()
+        .and_then(|p| p.parent())
+        .and_then(|p| p.parent())
+        .and_then(|p| p.parent())
+        .and_then(|p| p.parent())
+        .map(|p| p.to_path_buf())
+        .expect("Failed to get nixpkg_path directory");
+    // println!("cargo:warning=nixpkg_path: {}", nixpkg_path.display());
+
+    bindgen::Builder::default()
         .header(format!("{src_dir}/RFAL/include/rfal_utils.h"))
         .header(format!("{src_dir}/RFAL/include/rfal_nfc.h"))
         .header(format!("{src_dir}/RFAL/include/rfal_nfca.h"))
@@ -168,16 +201,15 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
         .clang_arg(format!("-I./{src_dir}/RFAL/include"))
         .clang_arg(format!("-I./{src_dir}/NDEF/include"))
         .clang_arg(format!("-I./{src_dir}/NDEF/include/message"))
+        .clang_arg("-nostdinc") // Disable standard includes (useful for bare-metal)
+        .clang_arg(format!("-I{}/include", version_path.display()))
+        .clang_arg(format!("-I{}/arm-none-eabi/include", nixpkg_path.display())) // This one resolve in `/usr/arm-none-eabi/include` on ubuntu, which doesn't exists but doesn't prevet building
         .use_core()
         .generate_comments(false)
-        .ctypes_prefix("cty");
-
-    let bindings = builder.generate().expect("Unable to generate bindings");
-
-    let out_file = out_dir.join("bindings.rs");
-
-    bindings
-        .write_to_file(out_file)
+        .ctypes_prefix("cty")
+        .generate()
+        .expect("Unable to generate bindings")
+        .write_to_file(out_dir.join("bindings.rs"))
         .expect("Couldn't write bindings!");
 
     println!("cargo:rerun-if-changed=src/lib.rs");
