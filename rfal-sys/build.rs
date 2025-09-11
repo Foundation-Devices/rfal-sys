@@ -51,7 +51,6 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
         .flag("-std=c99")
         .flag("-fno-short-enums")
         .flag("-mno-unaligned-access") // this is arm-none-eabi dependant
-        .define("USE_LOGGER", "LOGGER_ON")
         .define("ST25R95", "true")
         .define("ST25R95_DEBUG", "false")
         .define("ST25R95_INTERFACE_SPI", "true")
