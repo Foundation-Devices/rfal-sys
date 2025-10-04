@@ -125,7 +125,7 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     let libgcc_path = String::from_utf8_lossy(&output.stdout).trim().to_string();
     // libgcc.a is typically in
     // /usr/lib/gcc/arm-none-eabi/13.2.1/libgcc.a on ubuntu (manual and docker)
-    // /nix/store/jxx6k4rqv4bygf1v8rm62hrl5dw91riw-gcc-arm-embedded-14.3.rel1/bin/../lib/gcc/arm-none-eabi/14.3.1/libgcc.a on nixos (flake)
+    // /nix/store/ih9psjpxn2pbbzw4klr9s6hmmngc52n8-gcc-arm-embedded-14.3.rel1/bin/../lib/gcc/arm-none-eabi/14.3.1/libgcc.a using the nix flake
     let version_path = PathBuf::from(&libgcc_path)
         .parent()
         .map(|p| p.to_path_buf())

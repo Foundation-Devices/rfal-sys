@@ -5,3 +5,7 @@
 /target/
 rfal-sys/target/
 **/Cargo.lock
+.cargo/
+.direnv
+.envrc
+.env
