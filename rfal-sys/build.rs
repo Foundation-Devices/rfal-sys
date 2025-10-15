@@ -14,11 +14,7 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let marker_file = PathBuf::from(src_dir).join("patched_marker");
     if !marker_file.exists() {
-        let mut patch_files = vec![
-            "0003_big_spi_xfers.patch",
-            "0006_optimize_reg_modify.patch",
-            "0007_optimize_flush.patch",
-        ];
+        let mut patch_files = vec!["0003_big_spi_xfers.patch", "0007_optimize_flush.patch"];
         if ce {
             patch_files.push("9999_card_emulation.patch");
         }

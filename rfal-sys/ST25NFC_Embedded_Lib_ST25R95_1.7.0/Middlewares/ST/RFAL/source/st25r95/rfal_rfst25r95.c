@@ -2023,9 +2023,11 @@ ReturnCode rfalChipReadTestReg( uint16_t reg, uint8_t* value )
 ReturnCode rfalChipChangeRegBits( uint16_t reg, uint8_t valueMask, uint8_t value )
 {
     ReturnCode retCode;
+    uint8_t current;
     uint8_t tmp;
     
     retCode = st25r95ReadReg(reg, &tmp);
+    current = tmp;
     
     if (retCode == RFAL_ERR_NONE)
     {
@@ -2033,7 +2035,11 @@ ReturnCode rfalChipChangeRegBits( uint16_t reg, uint8_t valueMask, uint8_t value
         tmp &= (uint8_t)(~((uint32_t)valueMask));
         /* set the new value */
         tmp |= (value & valueMask);
-        retCode = st25r95WriteReg(gRFAL.protocol, reg, tmp);
+        if (tmp != current)
+        {
+            /* avoid a write if value is already the same */
+            retCode = st25r95WriteReg(gRFAL.protocol, reg, tmp);
+        }
     }
         
     return retCode;
