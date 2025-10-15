@@ -16,7 +16,6 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     if !marker_file.exists() {
         let mut patch_files = vec![
             "0003_big_spi_xfers.patch",
-            "0005_nfc_a_only.patch",
             "0006_optimize_reg_modify.patch",
             "0007_optimize_flush.patch",
         ];

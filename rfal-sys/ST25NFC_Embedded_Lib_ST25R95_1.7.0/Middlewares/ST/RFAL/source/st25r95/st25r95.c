@@ -149,7 +149,7 @@ ReturnCode st25r95FieldOn(uint32_t protocol)
 {   
     if (protocol == ST25R95_PROTOCOL_FIELDOFF)
     {
-        protocol = ST25R95_PROTOCOL_ISO15693;
+        protocol = ST25R95_PROTOCOL_ISO14443A; // assume NFC-A by default
     }
     return (st25r95ProtocolSelect(protocol));
 }
