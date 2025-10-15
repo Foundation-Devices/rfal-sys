@@ -15,7 +15,6 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     let marker_file = PathBuf::from(src_dir).join("patched_marker");
     if !marker_file.exists() {
         let mut patch_files = vec![
-            "0001_localize_string_h.patch",
             "0002_globalize_ST25R95_DEBUG.patch",
             "0003_big_spi_xfers.patch",
             "0005_nfc_a_only.patch",

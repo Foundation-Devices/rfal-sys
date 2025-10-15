@@ -41,6 +41,7 @@
 #include "rfal_nfcb.h"
 #include "rfal_nfcf.h"
 #include "rfal_utils.h"
+#include <string.h>
 
 /*
 ******************************************************************************

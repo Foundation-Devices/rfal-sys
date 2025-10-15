@@ -38,7 +38,7 @@
 #include "rfal_chip.h"
 #include "rfal_utils.h"
 #include "rfal_platform.h"
-
+#include <string.h>
 
 
 

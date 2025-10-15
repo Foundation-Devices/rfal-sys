@@ -42,6 +42,7 @@
 #include "rfal_isoDep.h"
 #include "rfal_rf.h"
 #include "rfal_utils.h"
+#include <string.h>
 
 /*
  ******************************************************************************

@@ -44,6 +44,7 @@
 #include "rfal_nfcf.h"
 #include "rfal_nfca.h"
 #include "rfal_analogConfig.h"
+#include <string.h>
 
 /*
  ******************************************************************************

@@ -40,6 +40,7 @@
 #include "rfal_st25xv.h"
 #include "rfal_nfcv.h"
 #include "rfal_utils.h"
+#include <string.h>
 
 /*
  ******************************************************************************
