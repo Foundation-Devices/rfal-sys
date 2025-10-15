@@ -27,10 +27,8 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
 
         for patch_file in patch_files.iter() {
-            let patch_output = Command::new("patch")
-                .arg("-p2")
-                .arg("--binary")
-                .arg("-i")
+            let patch_output = Command::new("git")
+                .arg("apply")
                 .arg(format!("patches/{patch_file}"))
                 .output()
                 .expect("failed to execute patch {:patch_file}");
