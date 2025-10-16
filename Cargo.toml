@@ -3,14 +3,14 @@
 
 [package]
 name = "rfal"
-version = "2.0.0"
+version = "3.0.0"
 edition = "2021"
 description = """
 Bindings to STSW-ST25R017 library for interacting with ST25R95 NFC chip.
 """
 
 [dependencies]
-rfal-sys = { path = "rfal-sys", version = "2.0.0" }
+rfal-sys = { path = "rfal-sys", version = "3.0.0" }
 
 [target.'cfg(not(feature = "alloc"))'.dependencies]
 heapless = { version = "0.8" }
