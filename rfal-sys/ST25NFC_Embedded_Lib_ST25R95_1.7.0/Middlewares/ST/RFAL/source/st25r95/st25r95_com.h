@@ -190,7 +190,6 @@
 #define st25r95SendCommandTypeAndLen(cmd, resp, respBuffLen)                                st25r95SPISendCommandTypeAndLen((cmd), (resp), (respBuffLen))                                         /*!< UART/SPI wrapper for st25r95SendCommandTypeAndLen */
 #define st25r95CommandEcho()                                                                st25r95SPICommandEcho()                                                                               /*!< UART/SPI wrapper for st25r95CommandEcho           */
 #define st25r95SendData(buf, bufLen, protocol, flags)                                       st25r95SPISendData((buf), (bufLen), (protocol), (flags))                                              /*!< UART/SPI wrapper for st25r95SendData              */
-#define st25r95SendTransmitFlag(protocol, transmitFlag)                                     st25r95SPISendTransmitFlag((protocol), (transmitFlag))                                                /*!< UART/SPI wrapper for st25r95SendTransmitFlag      */
 #define st25r95PollRead(timeout)                                                            st25r95SPIPollRead((timeout))                                                                         /*!< UART/SPI wrapper for st25r95PollRead              */
 #define st25r95PrepareRx(protocol, rxBuf, rxBufLen, rxRcvdLen, flags, additionalRespBytes)  st25r95SPIPrepareRx((protocol), (rxBuf), (rxBufLen), (rxRcvdLen),  (flags), (additionalRespBytes));   /*!< UART/SPI wrapper for st25r95PrepareRx             */
 #define st25r95CompleteRx()                                                                 st25r95SPICompleteRx();                                                                               /*!< UART/SPI wrapper for st25r95CompleteRx            */
@@ -202,7 +201,7 @@
 #define st25r95Idle(DacDataL, DacDataH, WUPeriod)                                           st25r95SPIIdle((DacDataL), (DacDataH), (WUPeriod))                                                    /*!< UART/SPI wrapper for st25r95Idle                  */
 #define st25r95GetIdleResponse()                                                            st25r95SPIGetIdleResponse()                                                                           /*!< UART/SPI wrapper for st25r95GetIdleResponse       */
 #define st25r95KillIdle()                                                                   st25r95SPIKillIdle()                                                                                  /*!< UART/SPI wrapper for st25r95KillIdle              */
-#define st25r95FlushChipSPIBuffer()                                                         st25r95SPIRxTx(NULL, NULL, ST25R95_COMMUNICATION_BUFFER_SIZE)                                         /*!< st25r95FlushChipSPIBuffer defined as a macro for better readibility */
+#define st25r95FlushChipSPIBuffer()                                                         platformSpiFlush()                                                                               /*!< st25r95FlushChipSPIBuffer defined as a macro for better readibility */
 #else /* !ST25R95_INTERFACE_SPI */
 #define st25r95SendCommandTypeAndLen(cmd, resp, respBuffLen)                                st25r95UARTSendCommandTypeAndLen((cmd), (resp), (respBuffLen))                                        /*!< UART/SPI wrapper for st25r95SendCommandTypeAndLen */
 #define st25r95CommandEcho()                                                                st25r95UARTCommandEcho()                                                                              /*!< UART/SPI wrapper for st25r95CommandEcho           */
@@ -327,21 +326,6 @@ extern ReturnCode st25r95SPICommandEcho(void);
  *****************************************************************************
  */
 extern ReturnCode st25r95UARTCommandEcho(void);
-
-/*! 
- *****************************************************************************
- *  \brief  Sends one byte over SPI and returns the byte received
- *
- *  This function is used to send one byte over SPI and  returns the byte received
- *
- *  \param[in]   data: byte to be sent over SPI
- *
- *  \return RFAL_ERR_NONE    : Operation successful (echo response received)
- *  \return RFAL_ERR_TIMEOUT : Timeout
- *
- *****************************************************************************
- */
-extern uint8_t st25r95SPISendReceiveByte(uint8_t data);
 
 /*! 
  *****************************************************************************
@@ -752,19 +736,6 @@ extern void st25r95UARTGetIdleResponse(void);
 
 /*! 
  *****************************************************************************
- *  \brief  Send transmit flag (SPI mode)
- *
- *  This function is used to send the transmit flag during the SendRecv command.
- *
- *  \param[in]   protocol: value of the protocol
- *  \param[in]   transmitFlag: transmission flags
- *
- *****************************************************************************
- */
-extern void st25r95SPISendTransmitFlag(uint8_t protocol, uint8_t transmitFlag);
-
-/*! 
- *****************************************************************************
  *  \brief  Send transmit flag (UART mode)
  *
  *  This function is used to send the transmit flag during the SendRecv command.
@@ -831,20 +802,6 @@ extern void st25r95UARTKillIdle(void);
  *****************************************************************************
  */
 extern uint8_t st25r95CalibrateTagDetector(void);
-
-/*! 
- *****************************************************************************
- *  \brief SPI transceive function
- *
- *  This function is used for SPI communication.
- *
- *  \param[in]   txData: Tx Data
- *  \param[out]  rxData: Rx Data
- *  \param[in]   length: Tx/Rx Data buffer len
- *
- *****************************************************************************
- */
-extern void st25r95SPIRxTx(uint8_t *txData, uint8_t *rxData, uint16_t length);
 
 #endif /* ST25R95_COM_H */
 

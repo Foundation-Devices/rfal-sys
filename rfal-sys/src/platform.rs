@@ -7,9 +7,12 @@ const IRQ_OUT: u32 = 1;
 
 /// Defines platform HAL functions to be used by RFAL.
 pub struct Platform {
-    pub spi_select: fn(),
-    pub spi_deselect: fn(),
-    pub spi_tx_rx: fn(&[u8], &mut [u8]),
+    pub spi_poll_send: fn() -> bool,
+    pub spi_reset: fn(),
+    pub spi_send_cmd: fn(u8, &[u8], bool),
+    pub spi_read: fn(&mut u8, &mut [u8]) -> u16,
+    pub spi_read_echo: fn() -> bool,
+    pub spi_flush: fn(),
 
     pub handle_error: fn(&CStr, i32),
     pub log: fn(&CStr, usize),
@@ -28,34 +31,73 @@ pub fn rfal_platform_set(platform: Platform) {
 }
 
 #[no_mangle]
-fn ffi_spi_select() {
+fn ffi_spi_poll_send() -> bool {
     unsafe {
         (RFAL_PLATFORM
             .as_ref()
             .expect("call rfal_platform_set first")
-            .spi_select)();
+            .spi_poll_send)()
     }
 }
 
 #[no_mangle]
-fn ffi_spi_deselect() {
+fn ffi_spi_reset() {
     unsafe {
         (RFAL_PLATFORM
             .as_ref()
             .expect("call rfal_platform_set first")
-            .spi_deselect)();
+            .spi_reset)();
     }
 }
 
 #[no_mangle]
-fn ffi_spi_tx_rx(tx: *const u8, rx: *mut u8, len: usize) {
+fn ffi_spi_send_cmd(cmd: u8, data: *const u8, len: usize, sod: bool) {
     unsafe {
-        let tx = core::slice::from_raw_parts(tx, len);
-        let rx = core::slice::from_raw_parts_mut(rx, len);
+        let data = if len > 0 {
+            core::slice::from_raw_parts(data, len)
+        } else {
+            &[]
+        };
         (RFAL_PLATFORM
             .as_ref()
             .expect("call rfal_platform_set first")
-            .spi_tx_rx)(tx, rx);
+            .spi_send_cmd)(cmd, data, sod);
+    }
+}
+
+#[no_mangle]
+fn ffi_spi_read(code: *mut u8, data: *mut u8, len: usize) -> u16 {
+    unsafe {
+        let code = &mut *code;
+        let data = if len > 0 {
+            core::slice::from_raw_parts_mut(data, len)
+        } else {
+            &mut []
+        };
+        (RFAL_PLATFORM
+            .as_ref()
+            .expect("call rfal_platform_set first")
+            .spi_read)(code, data)
+    }
+}
+
+#[no_mangle]
+fn ffi_spi_read_echo() -> bool {
+    unsafe {
+        (RFAL_PLATFORM
+            .as_ref()
+            .expect("call rfal_platform_set first")
+            .spi_read_echo)()
+    }
+}
+
+#[no_mangle]
+fn ffi_spi_flush() {
+    unsafe {
+        (RFAL_PLATFORM
+            .as_ref()
+            .expect("call rfal_platform_set first")
+            .spi_flush)();
     }
 }
 

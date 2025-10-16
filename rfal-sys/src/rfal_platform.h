@@ -55,9 +55,12 @@ extern void ffi_handle_error(const char *file, int line);
 extern uint32_t ffi_irq_out(void);
 extern uint32_t ffi_irq_in(void);
 
-extern void ffi_spi_deselect(void);
-extern void ffi_spi_select(void);
-extern void ffi_spi_tx_rx(const uint8_t* tx, uint8_t* rx, size_t len);
+extern bool ffi_spi_poll_send(void);
+extern void ffi_spi_reset(void);
+extern void ffi_spi_send_cmd(uint8_t cmd, const uint8_t* data, size_t len, bool sod);
+extern uint16_t ffi_spi_read(uint8_t *code, uint8_t *data, size_t len);
+extern bool ffi_spi_read_echo();
+extern void ffi_spi_flush();
 
 /*
 ******************************************************************************
@@ -92,9 +95,12 @@ extern void ffi_spi_tx_rx(const uint8_t* tx, uint8_t* rx, size_t len);
 
 #define platformErrorHandle()              ffi_handle_error(__FILE__,__LINE__)   /*!< Global error handler or trap                */
 
-#define platformSpiSelect()                ffi_spi_select()                      /*!< SPI SS\CS: Chip|Slave Select                */
-#define platformSpiDeselect()              ffi_spi_deselect()                    /*!< SPI SS\CS: Chip|Slave Deselect              */
-#define platformSpiTxRx(txBuf, rxBuf, len) ffi_spi_tx_rx(txBuf, rxBuf, len)      /*!< SPI transceive                              */
+#define platformSpiPollSend()              ffi_spi_poll_send()
+#define platformSpiReset()                 ffi_spi_reset()
+#define platformSpiSendCmd(cmd, data, len, sod) ffi_spi_send_cmd(cmd, data, len, sod)
+#define platformSpiRead(code, data, len)   ffi_spi_read(code, data, len)
+#define platformSpiReadEcho()              ffi_spi_read_echo()
+#define platformSpiFlush()                 ffi_spi_flush()
 
 extern char* hex2Str(unsigned char * data, size_t dataLen);
 extern int logString(const char* format, ...);

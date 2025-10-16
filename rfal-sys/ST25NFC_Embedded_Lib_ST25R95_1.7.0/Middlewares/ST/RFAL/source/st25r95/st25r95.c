@@ -131,13 +131,9 @@ void st25r95UART_nIRQ_IN_Pulse(void)
 #if !(ST25R95_INTERFACE_UART) /* ST25R95_INTERFACE_SPI */
 void st25r95SPIResetChip(void)
 {
-    platformSpiDeselect();
     platformDelay(1);
-    platformSpiSelect();
     /* Send Reset Control byte over SPI */
-    st25r95SPISendReceiveByte(ST25R95_CONTROL_RESET);
-    platformDelay(1); 
-    platformSpiDeselect();
+    platformSpiReset();
     platformDelay(3);
     st25r95_nIRQ_IN_Pulse();
 }

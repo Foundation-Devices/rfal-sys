@@ -933,20 +933,7 @@ static void rfalTransceiveTx(void)
             /*******************************************************************************/
             /* Send the data                                                               */
             /*******************************************************************************/
-            st25r95SendData(gRFAL.TxRx.ctx.txBuf, rfalConvBitsToBytes(gRFAL.TxRx.ctx.txBufLen), gRFAL.protocol, gRFAL.TxRx.ctx.flags);
-            
-            /* Start FDTPoll SW timer */
-            rfalTimerStart( gRFAL.tmr.FDTPoll, (RFAL_ST25R95_SW_TMR_MIN_1MS + rfalConv1fcToMs(gRFAL.timings.FDTPoll)) );
-            
-            gRFAL.TxRx.state = RFAL_TXRX_STATE_TX_WAIT_TXE;
-            /* fall through */
-
-        /*******************************************************************************/
-        case RFAL_TXRX_STATE_TX_WAIT_TXE:
-            if (!st25r95IsTransmitTxCompleted())
-            {
-                break;
-            }
+            uint16_t txBufLen = rfalConvBitsToBytes(gRFAL.TxRx.ctx.txBufLen);
 #if RFAL_FEATURE_NFCA
             transmitFlag = gRFAL.TxRx.ctx.txBufLen % 8;
             if (transmitFlag == 0 )
@@ -965,8 +952,12 @@ static void rfalTransceiveTx(void)
             {
                 transmitFlag |= RFAL_ST25R95_ISO14443A_TOPAZFORMAT;
             }
+            gRFAL.TxRx.ctx.txBuf[txBufLen++] = transmitFlag;
 #endif /* RFAL_FEATURE_NFCA */
-            st25r95SendTransmitFlag(gRFAL.protocol, transmitFlag);
+            st25r95SendData(gRFAL.TxRx.ctx.txBuf, txBufLen, gRFAL.protocol, gRFAL.TxRx.ctx.flags);
+
+            /* Start FDTPoll SW timer */
+            rfalTimerStart( gRFAL.tmr.FDTPoll, (RFAL_ST25R95_SW_TMR_MIN_1MS + rfalConv1fcToMs(gRFAL.timings.FDTPoll)) );
 #if RFAL_FEATURE_LISTEN_MODE
             if (gRFAL.protocol == ST25R95_PROTOCOL_CE_ISO14443A)
             {

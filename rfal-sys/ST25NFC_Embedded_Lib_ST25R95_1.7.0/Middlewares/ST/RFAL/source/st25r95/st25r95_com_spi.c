@@ -91,28 +91,6 @@ st25r95SPIRxContext st25r95SPIRxCtx;
 */
 
 /*******************************************************************************/
-void st25r95SPIRxTx(uint8_t *txData, uint8_t *rxData, uint16_t length)
-{
-    uint8_t txByte = 0;
-    uint8_t rxByte;
-    
-    while (length != 0)
-    {
-        platformSpiTxRx((txData == NULL) ? &txByte : txData++, (rxData == NULL) ? &rxByte : rxData++, 1);
-        length--;
-    }
-}
-
-/*******************************************************************************/
-uint8_t st25r95SPISendReceiveByte(uint8_t data)
-{
-    uint8_t received_byte;
-    
-    platformSpiTxRx(&data, &received_byte, 1);
-    return (received_byte);
-}
-
-/*******************************************************************************/
 ReturnCode st25r95SPIPollRead(uint32_t timeout)
 {
     uint32_t timer;
@@ -135,14 +113,9 @@ ReturnCode st25r95SPIPollRead(uint32_t timeout)
 ReturnCode st25r95SPIPollSend(void)
 {
     ReturnCode retCode = RFAL_ERR_NONE;
-    uint8_t response;
     
     
-    platformSpiSelect();
-    st25r95SPISendReceiveByte(ST25R95_CONTROL_POLL);
-    response = st25r95SPISendReceiveByte(ST25R95_CONTROL_POLL);
-    platformSpiDeselect();
-    if (!ST25R95_POLL_DATA_CAN_BE_SEND(response))
+    if (!platformSpiPollSend())
     {
         retCode = RFAL_ERR_TIMEOUT;
     }
@@ -165,10 +138,7 @@ ReturnCode st25r95SPISendCommandTypeAndLen(uint8_t *cmd, uint8_t *resp, uint16_t
         resp[ST25R95_CMD_LENGTH_OFFSET] = 0x00;
         
         /* 1 - Send the  command */
-        platformSpiSelect();
-        st25r95SPISendReceiveByte(ST25R95_CONTROL_SEND);
-        st25r95SPIRxTx(cmd, NULL, cmd[ST25R95_CMD_LENGTH_OFFSET] + 2);
-        platformSpiDeselect();
+        platformSpiSendCmd(cmd[0], cmd + 2, cmd[ST25R95_CMD_LENGTH_OFFSET], false);
         #if ST25R95_DEBUG
         platformLog("[%10d] >>>> %s\r\n", platformGetSysTick(), hex2Str(cmd, cmd[ST25R95_CMD_LENGTH_OFFSET] + 2));
         #endif /* ST25R95_DEBUG */
@@ -178,39 +148,21 @@ ReturnCode st25r95SPISendCommandTypeAndLen(uint8_t *cmd, uint8_t *resp, uint16_t
         
         if (retCode == RFAL_ERR_NONE) 
         {
-            platformSpiSelect();
-            st25r95SPISendReceiveByte(ST25R95_CONTROL_READ);    
-            resp[ST25R95_CMD_RESULT_OFFSET] = st25r95SPISendReceiveByte(ST25R95_SPI_DUMMY_BYTE);
-            resp[ST25R95_CMD_LENGTH_OFFSET] = st25r95SPISendReceiveByte(resp[ST25R95_CMD_RESULT_OFFSET]);
-            len = resp[ST25R95_CMD_LENGTH_OFFSET];
-            /* compute len according to CR95HF DS § 4.4 */
-            if ((resp[ST25R95_CMD_RESULT_OFFSET] & 0x8F) == 0x80)
-            {
-                len |= (((uint32_t)resp[ST25R95_CMD_RESULT_OFFSET]) & 0x60U) << 3U;
-            }
-            /* read the len-bytes frame */
-            if (respBuffLen >= (len + 2))
-            {
-                if (len != 0)
-                {
-                    st25r95SPIRxTx(NULL, &resp[ST25R95_CMD_DATA_OFFSET], len);
-                }
-            }
-            else
+            len = platformSpiRead(&resp[ST25R95_CMD_RESULT_OFFSET], &resp[ST25R95_CMD_DATA_OFFSET], respBuffLen - ST25R95_CMD_DATA_OFFSET);
+            resp[ST25R95_CMD_LENGTH_OFFSET] = (uint8_t) (len & 0xFFU);
+            resp[ST25R95_CMD_RESULT_OFFSET] |= (uint8_t) ((len >> 3U) & 0x60U);
+            if (respBuffLen < (len + 2))
             {
                 st25r95FlushChipSPIBuffer();
                 retCode = RFAL_ERR_NOMEM;
             }
-            platformSpiDeselect();
             #if ST25R95_DEBUG
             platformLog("[%10d] <<<< %s\r\n", platformGetSysTick(), hex2Str(resp, len + 2));
             #endif /* ST25R95_DEBUG */
         }
         else
         {
-            platformSpiSelect();
             st25r95FlushChipSPIBuffer();
-            platformSpiDeselect();
             retCode = RFAL_ERR_SYSTEM;
         }
     }
@@ -221,7 +173,6 @@ ReturnCode st25r95SPISendCommandTypeAndLen(uint8_t *cmd, uint8_t *resp, uint16_t
 ReturnCode st25r95SPICommandEcho(void)
 {
     ReturnCode retCode = RFAL_ERR_NONE;
-    uint8_t respBuffer[ST25R95_ECHO_RESPONSE_BUFLEN];
     
     /* 0 - Poll the ST25R95 to make sure data can be send */
     /* Used only in cas of ECHO Command as this command is sent just after the ST25R95 reset */
@@ -230,10 +181,7 @@ ReturnCode st25r95SPICommandEcho(void)
     if (retCode == RFAL_ERR_NONE)
     {
         /* 1 - Send the echo command */
-        platformSpiSelect();
-        st25r95SPISendReceiveByte(ST25R95_CONTROL_SEND);    
-        st25r95SPISendReceiveByte(EchoCommand[0]);    
-        platformSpiDeselect();
+        platformSpiSendCmd(EchoCommand[0], NULL, 0, false);
 #if ST25R95_DEBUG        
         platformLog("[%10d] >>>> %2.2x\r\n", platformGetSysTick(), ST25R95_COMMAND_ECHO);
 #endif /* ST25R95_DEBUG */
@@ -244,21 +192,7 @@ ReturnCode st25r95SPICommandEcho(void)
         /* 3 - Read echo response */
         if (retCode == RFAL_ERR_NONE) 
         {
-            platformSpiSelect();
-            st25r95SPISendReceiveByte(ST25R95_CONTROL_READ);    
-            respBuffer[ST25R95_CMD_RESULT_OFFSET] = st25r95SPISendReceiveByte(ST25R95_SPI_DUMMY_BYTE);
-            /* Read 2 additional bytes. See  ST95HF DS §5.7 :
-             * The ECHO command (0x55) allows exiting Listening mode. 
-             * In response to the ECHO command, the ST25R95 sends 0x55 + 0x8500 (error code of the Listening state cancelled by the MCU).
-             */
-            respBuffer[1] = st25r95SPISendReceiveByte(ST25R95_SPI_DUMMY_BYTE);  
-            respBuffer[2] = st25r95SPISendReceiveByte(ST25R95_SPI_DUMMY_BYTE);
-            platformSpiDeselect();
-#if ST25R95_DEBUG            
-            platformLog("[%10d] <<<< %s\r\n", platformGetSysTick(), hex2Str(respBuffer, 3));
-#endif /* ST25R95_DEBUG */
-
-            if (respBuffer[ST25R95_CMD_RESULT_OFFSET] != ST25R95_COMMAND_ECHO)
+            if (!platformSpiReadEcho())
             {
 #if ST25R95_DEBUG  
                 platformLog("%s: unexepected echo response: %2.2x\r\n", __FUNCTION__, respBuffer[ST25R95_CMD_RESULT_OFFSET]);
@@ -281,54 +215,18 @@ ReturnCode st25r95SPICommandEcho(void)
 /*******************************************************************************/
 void st25r95SPISendData(uint8_t *buf, uint8_t bufLen, uint8_t protocol, uint32_t flags)
 {
-    uint8_t len;
+    uint8_t cmd = ST25R95_COMMAND_SENDRECV;
  
 #if ST25R95_DEBUG
     platformLog("[%10d] DATA >>>> %s", platformGetSysTick(), hex2Str(buf, bufLen));  
 #endif /* ST25R95_DEBUG */
 
-    platformSpiSelect();
-    st25r95SPISendReceiveByte(ST25R95_CONTROL_SEND);
     if (protocol == ST25R95_PROTOCOL_CE_ISO14443A)
     {
         /* Card Emulation mode */
-        st25r95SPISendReceiveByte(ST25R95_COMMAND_SEND);
+        cmd = ST25R95_COMMAND_SEND;
     }
-    else
-    {
-        st25r95SPISendReceiveByte(ST25R95_COMMAND_SENDRECV);
-    }
-    /* add transmission Flag Len in case of 14443A */
-    len = ((protocol == ST25R95_PROTOCOL_ISO14443A) || (protocol == ST25R95_PROTOCOL_CE_ISO14443A)) ? bufLen + 1: bufLen;
-    /* add SoD len in case of ISO14443A + NFCIP1 */
-    len += ((protocol == ST25R95_PROTOCOL_ISO14443A) && ((flags & RFAL_TXRX_FLAGS_NFCIP1_ON) == RFAL_TXRX_FLAGS_NFCIP1_ON)) ? 2 : 0;
-    st25r95SPISendReceiveByte(len);
-    if ((protocol == ST25R95_PROTOCOL_ISO14443A) && ((flags & RFAL_TXRX_FLAGS_NFCIP1_ON) == RFAL_TXRX_FLAGS_NFCIP1_ON))
-    {
-        st25r95SPISendReceiveByte(0xF0U);
-        st25r95SPISendReceiveByte(bufLen + 1); /* DP 2.0 17.4.1.3 The SoD SHALL contain a length byte LEN at the position shown in Figure 43 with a value equal to n+1, where n indicates the number of bytes the payload consists of.*/
-    }
-    st25r95SPIRxTx(buf, NULL, bufLen);
-
-}
-
-/*******************************************************************************/
-void st25r95SPISendTransmitFlag(uint8_t protocol, uint8_t transmitFlag)
-{
-    if ((protocol == ST25R95_PROTOCOL_ISO14443A) || (protocol == ST25R95_PROTOCOL_CE_ISO14443A))
-    {
-#if ST25R95_DEBUG
-        platformLog(" %2.2X", transmitFlag);
-#endif /* ST25R95_DEBUG */       
- 
-        /* send transmission Flag */
-        st25r95SPISendReceiveByte(transmitFlag);
-    }
-#if ST25R95_DEBUG
-    platformLog("\r\n"); 
-#endif /* ST25R95_DEBUG */ 
-    platformSpiDeselect();
-    
+    platformSpiSendCmd(cmd, buf, bufLen, (protocol == ST25R95_PROTOCOL_ISO14443A) && ((flags & RFAL_TXRX_FLAGS_NFCIP1_ON) == RFAL_TXRX_FLAGS_NFCIP1_ON));
 }
 
 /*******************************************************************************/
@@ -356,6 +254,8 @@ ReturnCode st25r95SPICompleteRx(void)
     rfalBitRate rxBr;
     ReturnCode retCode = RFAL_ERR_NONE;
     uint16_t additionalRespBytesNb = 1;
+    uint8_t buf[ST25R95_COMMUNICATION_BUFFER_SIZE];
+    uint16_t offset = 0;
     
     
 #if ST25R95_DEBUG   
@@ -363,21 +263,22 @@ ReturnCode st25r95SPICompleteRx(void)
     RFAL_NO_WARNING(initialLen);    /* debug purposes */
 #endif /* ST25R95_DEBUG */
     
-    platformSpiSelect();
-    st25r95SPISendReceiveByte(ST25R95_CONTROL_READ);    
-    Result = st25r95SPISendReceiveByte(ST25R95_SPI_DUMMY_BYTE);
-    len = st25r95SPISendReceiveByte(ST25R95_SPI_DUMMY_BYTE);
+    // platformSpiSelect();
+    // st25r95SPISendReceiveByte(ST25R95_CONTROL_READ);
+    // Result = st25r95SPISendReceiveByte(ST25R95_SPI_DUMMY_BYTE);
+    // len = st25r95SPISendReceiveByte(ST25R95_SPI_DUMMY_BYTE);
+    len = platformSpiRead(&Result, buf, ST25R95_COMMUNICATION_BUFFER_SIZE);
 #if ST25R95_DEBUG
     initialResult = Result;
     initialLen = len;
 #endif /* ST25R95_DEBUG */
 
-    /* compute len according to CR95HF DS § 4.4 */
-    if ((Result & 0x8F) == 0x80)
-    {
-        len |= (((uint32_t)Result) & 0x60) << 3;
-        Result &= 0x9F;
-    }
+    // /* compute len according to CR95HF DS § 4.4 */
+    // if ((Result & 0x8F) == 0x80)
+    // {
+    //     len |= (((uint32_t)Result) & 0x60) << 3;
+    //     Result &= 0x9F;
+    // }
     rcvdLen = 0;
         
     switch (Result)
@@ -466,7 +367,8 @@ ReturnCode st25r95SPICompleteRx(void)
         }
         if ((st25r95SPIRxCtx.NFCIP1) && (len >= 1))
         {
-            st25r95SPIRxTx(NULL, st25r95SPIRxCtx.NFCIP1_SoD, 1);
+            // st25r95SPIRxTx(NULL, st25r95SPIRxCtx.NFCIP1_SoD, 1);
+            st25r95SPIRxCtx.NFCIP1_SoD[0] = buf[offset++];
             len -= 1;
         }
         if ((len > st25r95SPIRxCtx.rxBufLen) ||
@@ -484,21 +386,28 @@ ReturnCode st25r95SPICompleteRx(void)
         {
             if (st25r95SPIRxCtx.protocol == ST25R95_PROTOCOL_ISO18092)
             {
-                st25r95SPIRxTx(NULL, &st25r95SPIRxCtx.rxBuf[RFAL_NFCF_LENGTH_LEN], len);
+                // st25r95SPIRxTx(NULL, &st25r95SPIRxCtx.rxBuf[RFAL_NFCF_LENGTH_LEN], len);
+                memcpy(&buf[offset], &st25r95SPIRxCtx.rxBuf[RFAL_NFCF_LENGTH_LEN], len);
+                offset += len;
                 rcvdLen += RFAL_NFCF_LENGTH_LEN;
                 len += RFAL_NFCF_LENGTH_LEN;
                 st25r95SPIRxCtx.rxBuf[0] = (uint8_t)(rcvdLen & 0xFFU);
             }
             else
             {
-                st25r95SPIRxTx(NULL, st25r95SPIRxCtx.rxBuf, len);
+                // st25r95SPIRxTx(NULL, st25r95SPIRxCtx.rxBuf, len);
+                memcpy(&buf[offset], st25r95SPIRxCtx.rxBuf, len);
+                offset += len;
             }
         }
         if ((st25r95SPIRxCtx.rmvCRC) && (st25r95SPIRxCtx.protocol != ST25R95_PROTOCOL_ISO18092))
         {
-            st25r95SPIRxTx(NULL, st25r95SPIRxCtx.BufCRC, 2);
+            // st25r95SPIRxTx(NULL, st25r95SPIRxCtx.BufCRC, 2);
+            memcpy(&buf[offset], st25r95SPIRxCtx.BufCRC, 2);
+            offset += 2;
         }
-        st25r95SPIRxTx(NULL, st25r95SPIRxCtx.additionalRespBytes, additionalRespBytesNb);
+        // st25r95SPIRxTx(NULL, st25r95SPIRxCtx.additionalRespBytes, additionalRespBytesNb);
+        memcpy(&buf[offset], st25r95SPIRxCtx.additionalRespBytes, additionalRespBytesNb);
      
         /* check collision and CRC error */
         switch (st25r95SPIRxCtx.protocol)
@@ -526,7 +435,7 @@ ReturnCode st25r95SPICompleteRx(void)
         }
     } while (0);
    
-    platformSpiDeselect();
+    // platformSpiDeselect();
 #if ST25R95_DEBUG
     platformLog("[%10d] DATA <<<<(0x%2.2X%2.2X) %s%s", platformGetSysTick(), initialResult, initialLen, (st25r95SPIRxCtx.NFCIP1) ? hex2Str(st25r95SPIRxCtx.NFCIP1_SoD, 1) : "", (rcvdLen == len) ? hex2Str(st25r95SPIRxCtx.rxBuf, (rcvdLen)): "<error>");
     if ((st25r95SPIRxCtx.rmvCRC) && (additionalRespBytesNb != 0) && (st25r95SPIRxCtx.protocol != ST25R95_PROTOCOL_ISO18092))
@@ -589,10 +498,7 @@ void st25r95SPIIdle(uint8_t dacDataL, uint8_t dacDataH, uint8_t WUPeriod)
     Idle[ST25R95_IDLE_WUPERIOD_OFFSET] = WUPeriod;
     Idle[ST25R95_IDLE_DACDATAL_OFFSET] = dacDataL;
     Idle[ST25R95_IDLE_DACDATAH_OFFSET] = dacDataH;
-    platformSpiSelect();
-    st25r95SPISendReceiveByte(ST25R95_CONTROL_SEND);
-    st25r95SPIRxTx(Idle, NULL, Idle[ST25R95_CMD_LENGTH_OFFSET] + 2);
-    platformSpiDeselect();
+    platformSpiSendCmd(Idle[0], Idle + 2, Idle[ST25R95_CMD_LENGTH_OFFSET], false);
     #if ST25R95_DEBUG
     platformLog("[%10d] >>>> %s\r\n", platformGetSysTick(), hex2Str(Idle, Idle[ST25R95_CMD_LENGTH_OFFSET] + 2));
     #endif /* ST25R95_DEBUG */
@@ -603,22 +509,7 @@ void st25r95SPIGetIdleResponse(void)
 {
     uint8_t respBuffer[ST25R95_IDLE_RESPONSE_BUFLEN];
     
-    platformSpiSelect();
-    st25r95SPISendReceiveByte(ST25R95_CONTROL_READ);    
-    respBuffer[ST25R95_CMD_RESULT_OFFSET] = st25r95SPISendReceiveByte(ST25R95_SPI_DUMMY_BYTE);
-    respBuffer[ST25R95_CMD_LENGTH_OFFSET] = st25r95SPISendReceiveByte(respBuffer[ST25R95_CMD_RESULT_OFFSET]);
-    if ((sizeof(respBuffer)) >= (respBuffer[ST25R95_CMD_LENGTH_OFFSET] + 2U))
-    {
-        if (respBuffer[ST25R95_CMD_LENGTH_OFFSET] != 0)
-        {
-            st25r95SPIRxTx(NULL, &respBuffer[ST25R95_CMD_DATA_OFFSET], respBuffer[ST25R95_CMD_LENGTH_OFFSET]);
-        }
-    }
-    else
-    {
-        st25r95FlushChipSPIBuffer();
-    }
-    platformSpiDeselect();
+    platformSpiRead(respBuffer, &respBuffer[2], ST25R95_IDLE_RESPONSE_BUFLEN - 2);
     #if ST25R95_DEBUG
     platformLog("[%10d] <<<< %s\r\n", platformGetSysTick(), hex2Str(respBuffer, respBuffer[ST25R95_CMD_LENGTH_OFFSET] + 2));
     #endif /* ST25R95_DEBUG */
