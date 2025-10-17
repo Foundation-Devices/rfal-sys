@@ -263,22 +263,12 @@ ReturnCode st25r95SPICompleteRx(void)
     RFAL_NO_WARNING(initialLen);    /* debug purposes */
 #endif /* ST25R95_DEBUG */
     
-    // platformSpiSelect();
-    // st25r95SPISendReceiveByte(ST25R95_CONTROL_READ);
-    // Result = st25r95SPISendReceiveByte(ST25R95_SPI_DUMMY_BYTE);
-    // len = st25r95SPISendReceiveByte(ST25R95_SPI_DUMMY_BYTE);
     len = platformSpiRead(&Result, buf, ST25R95_COMMUNICATION_BUFFER_SIZE);
 #if ST25R95_DEBUG
     initialResult = Result;
     initialLen = len;
 #endif /* ST25R95_DEBUG */
 
-    // /* compute len according to CR95HF DS § 4.4 */
-    // if ((Result & 0x8F) == 0x80)
-    // {
-    //     len |= (((uint32_t)Result) & 0x60) << 3;
-    //     Result &= 0x9F;
-    // }
     rcvdLen = 0;
         
     switch (Result)
@@ -367,7 +357,6 @@ ReturnCode st25r95SPICompleteRx(void)
         }
         if ((st25r95SPIRxCtx.NFCIP1) && (len >= 1))
         {
-            // st25r95SPIRxTx(NULL, st25r95SPIRxCtx.NFCIP1_SoD, 1);
             st25r95SPIRxCtx.NFCIP1_SoD[0] = buf[offset++];
             len -= 1;
         }
@@ -386,8 +375,7 @@ ReturnCode st25r95SPICompleteRx(void)
         {
             if (st25r95SPIRxCtx.protocol == ST25R95_PROTOCOL_ISO18092)
             {
-                // st25r95SPIRxTx(NULL, &st25r95SPIRxCtx.rxBuf[RFAL_NFCF_LENGTH_LEN], len);
-                memcpy(&buf[offset], &st25r95SPIRxCtx.rxBuf[RFAL_NFCF_LENGTH_LEN], len);
+                memcpy(&st25r95SPIRxCtx.rxBuf[RFAL_NFCF_LENGTH_LEN], &buf[offset], len);
                 offset += len;
                 rcvdLen += RFAL_NFCF_LENGTH_LEN;
                 len += RFAL_NFCF_LENGTH_LEN;
@@ -395,19 +383,16 @@ ReturnCode st25r95SPICompleteRx(void)
             }
             else
             {
-                // st25r95SPIRxTx(NULL, st25r95SPIRxCtx.rxBuf, len);
-                memcpy(&buf[offset], st25r95SPIRxCtx.rxBuf, len);
+                memcpy(st25r95SPIRxCtx.rxBuf, &buf[offset], len);
                 offset += len;
             }
         }
         if ((st25r95SPIRxCtx.rmvCRC) && (st25r95SPIRxCtx.protocol != ST25R95_PROTOCOL_ISO18092))
         {
-            // st25r95SPIRxTx(NULL, st25r95SPIRxCtx.BufCRC, 2);
-            memcpy(&buf[offset], st25r95SPIRxCtx.BufCRC, 2);
+            memcpy(st25r95SPIRxCtx.BufCRC, &buf[offset], 2);
             offset += 2;
         }
-        // st25r95SPIRxTx(NULL, st25r95SPIRxCtx.additionalRespBytes, additionalRespBytesNb);
-        memcpy(&buf[offset], st25r95SPIRxCtx.additionalRespBytes, additionalRespBytesNb);
+        memcpy(st25r95SPIRxCtx.additionalRespBytes, &buf[offset], additionalRespBytesNb);
      
         /* check collision and CRC error */
         switch (st25r95SPIRxCtx.protocol)
@@ -435,7 +420,6 @@ ReturnCode st25r95SPICompleteRx(void)
         }
     } while (0);
    
-    // platformSpiDeselect();
 #if ST25R95_DEBUG
     platformLog("[%10d] DATA <<<<(0x%2.2X%2.2X) %s%s", platformGetSysTick(), initialResult, initialLen, (st25r95SPIRxCtx.NFCIP1) ? hex2Str(st25r95SPIRxCtx.NFCIP1_SoD, 1) : "", (rcvdLen == len) ? hex2Str(st25r95SPIRxCtx.rxBuf, (rcvdLen)): "<error>");
     if ((st25r95SPIRxCtx.rmvCRC) && (additionalRespBytesNb != 0) && (st25r95SPIRxCtx.protocol != ST25R95_PROTOCOL_ISO18092))
