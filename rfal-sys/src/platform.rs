@@ -2,9 +2,6 @@ use core::ffi::{c_char, CStr};
 
 static mut RFAL_PLATFORM: Option<Platform> = None;
 
-const IRQ_IN: u32 = 0;
-const IRQ_OUT: u32 = 1;
-
 /// Defines platform HAL functions to be used by RFAL.
 pub struct Platform {
     pub spi_poll_send: fn() -> bool,
@@ -17,8 +14,8 @@ pub struct Platform {
     pub handle_error: fn(&CStr, i32),
     pub log: fn(&CStr, usize),
 
-    pub set_irq_in: fn(bool),
-    pub get_irq_out: fn() -> bool,
+    pub irq_in_pulse_low: fn(),
+    pub wait_irq_out_falling_edge: fn(u32) -> bool,
 
     pub get_ticks_ms: fn() -> u32,
     pub delay_ms: fn(u32),
@@ -127,39 +124,23 @@ pub unsafe fn ffi_log(msg: *const c_char, val: usize) {
 }
 
 #[no_mangle]
-fn ffi_gpio_set(port: u32, pin: u32, value: bool) {
-    if port == IRQ_IN && pin == IRQ_IN {
-        unsafe {
-            (RFAL_PLATFORM
-                .as_ref()
-                .expect("call rfal_platform_set first")
-                .set_irq_in)(value)
-        }
+fn ffi_irq_in_pulse_low() {
+    unsafe {
+        (RFAL_PLATFORM
+            .as_ref()
+            .expect("call rfal_platform_set first")
+            .irq_in_pulse_low)()
     }
 }
 
 #[no_mangle]
-fn ffi_gpio_get(port: u32, pin: u32) -> bool {
-    if port == IRQ_OUT && pin == IRQ_OUT {
-        unsafe {
-            (RFAL_PLATFORM
-                .as_ref()
-                .expect("call rfal_platform_set first")
-                .get_irq_out)()
-        }
-    } else {
-        false
+fn ffi_wait_irq_out_falling_edge(timeout: u32) -> bool {
+    unsafe {
+        (RFAL_PLATFORM
+            .as_ref()
+            .expect("call rfal_platform_set first")
+            .wait_irq_out_falling_edge)(timeout)
     }
-}
-
-#[no_mangle]
-fn ffi_irq_out() -> u32 {
-    IRQ_OUT
-}
-
-#[no_mangle]
-fn ffi_irq_in() -> u32 {
-    IRQ_IN
 }
 
 #[no_mangle]

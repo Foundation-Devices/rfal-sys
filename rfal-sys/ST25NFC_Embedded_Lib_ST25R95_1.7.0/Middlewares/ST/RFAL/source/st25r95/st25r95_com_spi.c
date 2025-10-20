@@ -93,18 +93,12 @@ st25r95SPIRxContext st25r95SPIRxCtx;
 /*******************************************************************************/
 ReturnCode st25r95SPIPollRead(uint32_t timeout)
 {
-    uint32_t timer;
     ReturnCode retCode = RFAL_ERR_NONE;   
     
-    timer = platformTimerCreate(timeout);
-    while (platformGpioIsHigh(ST25R95_N_IRQ_OUT_PORT, ST25R95_N_IRQ_OUT_PIN) && (timeout != 0) && !platformTimerIsExpired(timer)) {;}
-    
-    if (platformGpioIsHigh(ST25R95_N_IRQ_OUT_PORT, ST25R95_N_IRQ_OUT_PIN))
+    if (!platformWaitIrqOutFallingEdge(timeout))
     {
         retCode = RFAL_ERR_TIMEOUT;
     }
-    
-    platformTimerDestroy(timer);
     
     return (retCode);
 }

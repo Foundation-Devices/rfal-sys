@@ -44,8 +44,8 @@
 ******************************************************************************
 */
 
-extern void ffi_gpio_set(uint32_t port, uint32_t pin, bool state);
-extern bool ffi_gpio_get(uint32_t port, uint32_t pin);
+extern void ffi_irq_in_pulse_low(void);
+extern bool ffi_wait_irq_out_falling_edge(uint32_t timeout);
 
 extern void ffi_delay_ms(uint32_t delay);
 extern uint32_t ffi_get_ticks_ms(void);
@@ -59,19 +59,14 @@ extern bool ffi_spi_poll_send(void);
 extern void ffi_spi_reset(void);
 extern void ffi_spi_send_cmd(uint8_t cmd, const uint8_t* data, size_t len, bool sod);
 extern uint16_t ffi_spi_read(uint8_t *code, uint8_t *data, size_t len);
-extern bool ffi_spi_read_echo();
-extern void ffi_spi_flush();
+extern bool ffi_spi_read_echo(void);
+extern void ffi_spi_flush(void);
 
 /*
 ******************************************************************************
 * GLOBAL DEFINES
 ******************************************************************************
 */
-
-#define ST25R95_N_IRQ_OUT_PIN        ffi_irq_out()         /*!< GPIO pin used for ST25R95 nIRQ_OUT            */
-#define ST25R95_N_IRQ_OUT_PORT       ffi_irq_out()         /*!< GPIO port used for ST25R95 nIRQ_OUT           */
-#define ST25R95_N_IRQ_IN_PIN         ffi_irq_in()          /*!< GPIO pin used for ST25R95 nIRQ_OIN            */
-#define ST25R95_N_IRQ_IN_PORT        ffi_irq_in()          /*!< GPIO port used for ST25R95 nIRQ_OUT           */
 
 #define ST25R95_TAGDETECT_DEF_CALIBRATION 0x7C             /*!< Tag Detection Calibration default value                    */
 #define ST25R95_TAGDETECT_CALIBRATE       true             /*!< False: use default value, True: call calibration procedure */
@@ -82,11 +77,8 @@ extern void ffi_spi_flush();
 ******************************************************************************
 */
 
-#define platformGpioSet(port, pin)         ffi_gpio_set((port), (pin), true)     /*!< Turns the given GPIO High                   */
-#define platformGpioClear(port, pin)       ffi_gpio_set((port), (pin), false)    /*!< Turns the given GPIO Low                    */
-#define platformGpioToggle(port, pin)      ffi_gpio_set((port), (pin), !ffi_gpio_get((port), (pin))) /*!< Toggles the given GPIO  */
-#define platformGpioIsHigh(port, pin)      (ffi_gpio_get((port), (pin)) == true) /*!< Checks if the given LED is High             */
-#define platformGpioIsLow(port, pin)       (!platformGpioIsHigh((port), (pin)))  /*!< Checks if the given LED is Low              */
+#define platformIrqInPulseLow()            ffi_irq_in_pulse_low()
+#define platformWaitIrqOutFallingEdge(to)  ffi_wait_irq_out_falling_edge(to)
 
 #define platformGetSysTick()               ffi_get_ticks_ms()                    /*!< Get System Tick ( 1 tick = 1 ms)            */
 #define platformTimerCreate(t)             (platformGetSysTick()+(t))            /*!< Create a timer with the given time (ms)     */

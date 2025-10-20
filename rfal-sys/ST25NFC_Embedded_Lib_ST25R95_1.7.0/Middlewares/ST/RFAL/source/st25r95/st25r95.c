@@ -102,12 +102,7 @@ void st25r95Deinitialize(void)
 /*******************************************************************************/
 void st25r95SPI_nIRQ_IN_Pulse(void)
 {
-    platformGpioSet(ST25R95_N_IRQ_IN_PORT, ST25R95_N_IRQ_IN_PIN);
-    platformDelay(1); /* wait t0 */
-    platformGpioClear(ST25R95_N_IRQ_IN_PORT, ST25R95_N_IRQ_IN_PIN);
-    platformDelay(1); /* wait t1 */
-    platformGpioSet(ST25R95_N_IRQ_IN_PORT, ST25R95_N_IRQ_IN_PIN); 
-    platformDelay(11); /* wait t3: seems more than 10ms needed */
+    platformIrqInPulseLow();
 }
 
 /*******************************************************************************/
