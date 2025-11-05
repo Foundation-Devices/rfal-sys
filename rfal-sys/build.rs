@@ -1,36 +1,10 @@
+use std::env;
 use std::path::PathBuf;
 use std::process::Command;
-use std::{env, fs};
 
 pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     let src_dir = "ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST";
     let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
-
-    let ce = fs::copy(
-        "licensed/st25r95_com_ce.c",
-        format!("{src_dir}/RFAL/source/st25r95/st25r95_com_ce.c"),
-    )
-    .is_ok();
-
-    let marker_file = PathBuf::from(src_dir).join("patched_marker");
-    if !marker_file.exists() {
-        let mut patch_files = vec![];
-        if ce {
-            patch_files.push("9999_card_emulation.patch");
-        }
-
-        for patch_file in patch_files.iter() {
-            let patch_output = Command::new("git")
-                .arg("apply")
-                .arg(format!("patches/{patch_file}"))
-                .output()
-                .expect("failed to execute patch {:patch_file}");
-            if !patch_output.status.success() {
-                panic!("Patch {patch_file} failed: {patch_output:?}");
-            }
-        }
-        fs::write(&marker_file, "patched").expect("Can't create marker file");
-    }
 
     env::set_var("CC", "arm-none-eabi-gcc");
     env::set_var("CXX", "arm-none-eabi-g++");
@@ -97,10 +71,17 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
         .file(format!(
             "{src_dir}/NDEF/source/poller/ndef_poller_message.c"
         ));
-    if ce {
-        builder.file(format!("{src_dir}/RFAL/source/st25r95/st25r95_com_ce.c"));
-    }
     builder.compile("rfal-sys");
+
+    // post-process the archive file to add the licensed object
+    let mut archiver = builder.get_archiver();
+    archiver.args([
+        "r",
+        out_dir.join("librfal-sys.a").to_str().unwrap(),
+        "licensed/723cc7b38d33199c-st25r95_com_ce.o",
+    ]);
+    let status = archiver.status().expect("failed to run archiver");
+    assert!(status.success());
 
     // Run arm-none-eabi-gcc -print-libgcc-file-name
     let output = Command::new("arm-none-eabi-gcc")

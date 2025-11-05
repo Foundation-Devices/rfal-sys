@@ -105,8 +105,8 @@
 
 #define RFAL_ISODEP_FSDI_DEFAULT                RFAL_ISODEP_FSXI_256  /*!< Default Frame Size Integer in Poll mode              */
 #define RFAL_ISODEP_FSX_KEEP                    (0xFFU)               /*!< Flag to keep FSX from activation                     */
-#define RFAL_ISODEP_DEFAULT_FSCI                RFAL_ISODEP_FSXI_256  /*!< FSCI default value to be used  in Listen Mode        */
-#define RFAL_ISODEP_DEFAULT_FSC                 RFAL_ISODEP_FSX_256   /*!< FSC default value (aligned RFAL_ISODEP_DEFAULT_FSCI) */
+#define RFAL_ISODEP_DEFAULT_FSCI                RFAL_ISODEP_FSXI_128  /*!< FSCI default value to be used  in Listen Mode        */
+#define RFAL_ISODEP_DEFAULT_FSC                 RFAL_ISODEP_FSX_128   /*!< FSC default value (aligned RFAL_ISODEP_DEFAULT_FSCI) */
 #define RFAL_ISODEP_DEFAULT_SFGI                (0U)                  /*!< SFGI Default value to be used  in Listen Mode        */
 #define RFAL_ISODEP_DEFAULT_FWI                 (8U)                  /*!< Default Listener FWI (Max)      Digital 2.0  B7 & B3 */
 

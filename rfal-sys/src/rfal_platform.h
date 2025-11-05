@@ -110,7 +110,7 @@ extern int logString(const char* format, ...);
 ******************************************************************************
 */
 
-#define RFAL_FEATURE_LISTEN_MODE               false      /*!< Enable/Disable RFAL support for Listen Mode                               */
+#define RFAL_FEATURE_LISTEN_MODE               true       /*!< Enable/Disable RFAL support for Listen Mode                               */
 #define RFAL_FEATURE_WAKEUP_MODE               true       /*!< Enable/Disable RFAL support for the Wake-Up mode                          */
 #define RFAL_FEATURE_LOWPOWER_MODE             false      /*!< Enable/Disable RFAL support for the Low Power mode                        */
 #define RFAL_FEATURE_NFCA                      true       /*!< Enable/Disable RFAL support for NFC-A (ISO14443A)                         */
@@ -119,14 +119,14 @@ extern int logString(const char* format, ...);
 #define RFAL_FEATURE_NFCV                      false      /*!< Enable/Disable RFAL support for NFC-V (ISO15693)                          */
 #define RFAL_FEATURE_T1T                       true       /*!< Enable/Disable RFAL support for T1T (Topaz)                               */
 #define RFAL_FEATURE_T2T                       true       /*!< Enable/Disable RFAL support for T2T                                       */
-#define RFAL_FEATURE_T4T                       false      /*!< Enable/Disable RFAL support for T4T                                       */
+#define RFAL_FEATURE_T4T                       true       /*!< Enable/Disable RFAL support for T4T                                       */
 #define RFAL_FEATURE_ST25TB                    false      /*!< Enable/Disable RFAL support for ST25TB                                    */
 #define RFAL_FEATURE_ST25xV                    false      /*!< Enable/Disable RFAL support for ST25TV/ST25DV                             */
 #define RFAL_FEATURE_DYNAMIC_ANALOG_CONFIG     false      /*!< Enable/Disable Analog Configs to be dynamically updated (RAM)             */
 #define RFAL_FEATURE_DPO                       false      /*!< Enable/Disable RFAL Dynamic Power Output support                          */
-#define RFAL_FEATURE_ISO_DEP                   false      /*!< Enable/Disable RFAL support for ISO-DEP (ISO14443-4)                      */
+#define RFAL_FEATURE_ISO_DEP                   true       /*!< Enable/Disable RFAL support for ISO-DEP (ISO14443-4)                      */
 #define RFAL_FEATURE_ISO_DEP_POLL              false      /*!< Enable/Disable RFAL support for Poller mode (PCD) ISO-DEP (ISO14443-4)    */
-#define RFAL_FEATURE_ISO_DEP_LISTEN            false      /*!< Enable/Disable RFAL support for Listen mode (PICC) ISO-DEP (ISO14443-4)   */
+#define RFAL_FEATURE_ISO_DEP_LISTEN            true       /*!< Enable/Disable RFAL support for Listen mode (PICC) ISO-DEP (ISO14443-4)   */
 #define RFAL_FEATURE_NFC_DEP                   false      /*!< Enable/Disable RFAL support for NFC-DEP (NFCIP1/P2P)                      */
 
 #define RFAL_FEATURE_ISO_DEP_IBLOCK_MAX_LEN    256U       /*!< ISO-DEP I-Block max length. Please use values as defined by rfalIsoDepFSx */
