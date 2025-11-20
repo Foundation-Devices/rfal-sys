@@ -12,7 +12,7 @@ pub struct Platform {
     pub spi_flush: fn(),
 
     pub handle_error: fn(&CStr, i32),
-    pub log: fn(&CStr, usize),
+    pub log: fn(&CStr, i32),
 
     pub irq_in_pulse_low: fn(),
     pub wait_irq_out_falling_edge: fn(u32) -> bool,
@@ -109,18 +109,15 @@ fn ffi_handle_error(file: *const c_char, line: i32) {
     }
 }
 
-/// # Safety
-///
-/// This function is unsafe because it expects `msg` to be a valid pointer to a null-terminated
-/// string. If `msg` is not a valid pointer or does not point to a null-terminated string, this
-/// function may cause undefined behavior.
 #[no_mangle]
-pub unsafe fn ffi_log(msg: *const c_char, val: usize) {
-    let s = CStr::from_ptr(msg);
-    (RFAL_PLATFORM
-        .as_ref()
-        .expect("call rfal_platform_set first")
-        .log)(s, val);
+fn ffi_log(msg: *const c_char, val: i32) {
+    unsafe {
+        let s = CStr::from_ptr(msg);
+        (RFAL_PLATFORM
+            .as_ref()
+            .expect("call rfal_platform_set first")
+            .log)(s, val);
+    }
 }
 
 #[no_mangle]

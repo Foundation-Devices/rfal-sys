@@ -51,6 +51,7 @@ extern void ffi_delay_ms(uint32_t delay);
 extern uint32_t ffi_get_ticks_ms(void);
 
 extern void ffi_handle_error(const char *file, int line);
+extern void ffi_log(int val);
 
 extern uint32_t ffi_irq_out(void);
 extern uint32_t ffi_irq_in(void);
@@ -86,6 +87,7 @@ extern void ffi_spi_flush(void);
 #define platformDelay(t)                   ffi_delay_ms(t)                       /*!< Performs a delay for the given time (ms)    */
 
 #define platformErrorHandle()              ffi_handle_error(__FILE__,__LINE__)   /*!< Global error handler or trap                */
+#define platformLog(m, v)                  ffi_log(m, v)
 
 #define platformSpiPollSend()              ffi_spi_poll_send()
 #define platformSpiReset()                 ffi_spi_reset()
@@ -93,10 +95,6 @@ extern void ffi_spi_flush(void);
 #define platformSpiRead(code, data, len)   ffi_spi_read(code, data, len)
 #define platformSpiReadEcho()              ffi_spi_read_echo()
 #define platformSpiFlush()                 ffi_spi_flush()
-
-extern char* hex2Str(unsigned char * data, size_t dataLen);
-extern int logString(const char* format, ...);
-#define platformLog(...)                   logString(__VA_ARGS__)                /*!< Log  method                                 */
 
 /*
 ******************************************************************************
