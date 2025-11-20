@@ -447,7 +447,8 @@ ReturnCode st25r95SPICompleteRx(void)
     if (st25r95SPIRxCtx.protocol == ST25R95_PROTOCOL_CE_ISO14443A)
     {
         st25r95SPIRxCtx.inListen = false;
-        st25r95SPIGetLmState(); /* store lmState */
+        // we can assume Field is ON and AC State is Active because we just received some Data from the Reader
+        st25r95SPIGetLmState(true); /* store lmState */
     }
     #endif /* RFAL_FEATURE_LISTEN_MODE */
     st25r95SPIRxCtx.retCode = retCode;

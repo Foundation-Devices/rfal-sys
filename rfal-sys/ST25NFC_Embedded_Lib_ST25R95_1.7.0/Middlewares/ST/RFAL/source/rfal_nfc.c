@@ -837,7 +837,7 @@ ReturnCode rfalNfcDataExchangeGetStatus( void )
         /* If a Sleep request has been received (Listen Mode) go to sleep immediately  */
         if( gNfcDev.dataExErr == RFAL_ERR_SLEEP_REQ )
         {
-            RFAL_EXIT_ON_ERR( gNfcDev.dataExErr, rfalListenSleepStart( RFAL_LM_STATE_SLEEP_A, gNfcDev.rxBuf.rfBuf, sizeof(gNfcDev.rxBuf.rfBuf), &gNfcDev.rxLen ) );
+            RFAL_EXIT_ON_ERR( gNfcDev.dataExErr, rfalListenSleepStart( RFAL_LM_STATE_UNKNOWN, RFAL_LM_STATE_SLEEP_A, gNfcDev.rxBuf.rfBuf, sizeof(gNfcDev.rxBuf.rfBuf), &gNfcDev.rxLen ) );
             
             /* If set Sleep was succesfull keep restore the Sleep request signal */
             gNfcDev.dataExErr = RFAL_ERR_SLEEP_REQ;
@@ -1901,7 +1901,7 @@ static ReturnCode rfalNfcListenActivation( void )
                 if( rfalNfcaListenerIsSleepReq( gNfcDev.rxBuf.rfBuf, rfalConvBitsToBytes(gNfcDev.rxLen)) )     /* Check if received data is a SLP_REQ */
                 {
                     /* Set the Listen Mode in Sleep state */
-                    RFAL_EXIT_ON_ERR( ret, rfalListenSleepStart( RFAL_LM_STATE_SLEEP_A, gNfcDev.rxBuf.rfBuf, sizeof(gNfcDev.rxBuf.rfBuf), &gNfcDev.rxLen ) );
+                    RFAL_EXIT_ON_ERR( ret, rfalListenSleepStart( lmSt, RFAL_LM_STATE_SLEEP_A, gNfcDev.rxBuf.rfBuf, sizeof(gNfcDev.rxBuf.rfBuf), &gNfcDev.rxLen ) );
                 }
                 
             #if RFAL_FEATURE_ISO_DEP && RFAL_FEATURE_ISO_DEP_LISTEN
@@ -1926,7 +1926,7 @@ static ReturnCode rfalNfcListenActivation( void )
                     rxParam.isoDepDev    = &gNfcDev.devList->proto.isoDep;
                     rxParam.isRxChaining = &gNfcDev.isRxChaining;
 
-                    rfalListenSetState( RFAL_LM_STATE_CARDEMU_4A );                   /* Set next state CE T4T */
+                    rfalListenSetState( lmSt, RFAL_LM_STATE_CARDEMU_4A );                   /* Set next state CE T4T */
                     rfalIsoDepInitialize();                                           /* Initialize ISO-DEP layer to handle ISO14443-a activation / RATS */
                     
                     /* Set ISO-DEP layer to digest RATS and handle activation */
@@ -1986,7 +1986,7 @@ static ReturnCode rfalNfcListenActivation( void )
                 else
             #endif /* RFAL_FEATURE_NFC_DEP */
                 {
-                    rfalListenSetState( RFAL_LM_STATE_CARDEMU_3 );                    /* First data already received - set T3T CE */
+                    rfalListenSetState( lmSt, RFAL_LM_STATE_CARDEMU_3 );                    /* First data already received - set T3T CE */
                 }
             }
             return RFAL_ERR_BUSY;

@@ -504,6 +504,7 @@ typedef enum
     RFAL_LM_STATE_READY_Ax              = 0x0E,     /*!< Ready A* state  Activity 1.1  5.3 5.4 & 5.5 */
     RFAL_LM_STATE_ACTIVE_Ax             = 0x0F,     /*!< Active A* state  Activity 1.1  5.6          */
     RFAL_LM_STATE_SLEEP_AF              = 0x10,     /*!< Sleep AF state  Activity 1.1  5.19          */
+    RFAL_LM_STATE_UNKNOWN               = 0x11,
 } rfalLmState;
 
 
@@ -1495,7 +1496,7 @@ ReturnCode rfalListenStart( uint32_t lmMask, const rfalLmConfPA *confA, const rf
  *
  *****************************************************************************
  */
-ReturnCode rfalListenSleepStart( rfalLmState sleepSt, uint8_t *rxBuf, uint16_t rxBufLen, uint16_t *rxLen );
+ReturnCode rfalListenSleepStart( rfalLmState currSt, rfalLmState sleepSt, uint8_t *rxBuf, uint16_t rxBufLen, uint16_t *rxLen );
 
 
 /*!
@@ -1552,7 +1553,7 @@ rfalLmState rfalListenGetState( bool *dataFlag, rfalBitRate *lastBR );
  * 
  *****************************************************************************
  */
-ReturnCode rfalListenSetState( rfalLmState newSt );
+ReturnCode rfalListenSetState( rfalLmState currSt, rfalLmState newSt );
 
 
 /*****************************************************************************

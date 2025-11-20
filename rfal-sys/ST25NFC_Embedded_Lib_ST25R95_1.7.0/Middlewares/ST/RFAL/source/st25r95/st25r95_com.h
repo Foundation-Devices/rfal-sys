@@ -195,7 +195,7 @@
 #define st25r95CompleteRx()                                                                 st25r95SPICompleteRx();                                                                               /*!< UART/SPI wrapper for st25r95CompleteRx            */
 #define st25r95IsTransmitTxCompleted()                                                      st25r95SPIIsTransmitCompleted()                                                                       /*!< UART/SPI wrapper for st25r95IsTransmitTxCompleted */
 #define st25r95IsInListen()                                                                 st25r95SPIIsInListen()                                                                                /*!< UART/SPI wrapper for st25r95IsInListen            */
-#define st25r95GetLmState()                                                                 st25r95SPIGetLmState()                                                                                /*!< UART/SPI wrapper for st25r95GetLmState            */
+#define st25r95GetLmState(assume)                                                           st25r95SPIGetLmState(assume)                                                                          /*!< UART/SPI wrapper for st25r95GetLmState            */
 #define st25r95DeactivateACFilter()                                                         st25r95SPIDeactivateACFilter()                                                                        /*!< UART/SPI wrapper for st25r95DeactivateACFilter    */
 #define st25r95SetACState(State)                                                            st25r95SPISetACState(State)                                                                           /*!< UART/SPI wrapper for st25r95SetACState            */
 #define st25r95Idle(DacDataL, DacDataH, WUPeriod)                                           st25r95SPIIdle((DacDataL), (DacDataH), (WUPeriod))                                                    /*!< UART/SPI wrapper for st25r95Idle                  */
@@ -212,7 +212,7 @@
 #define st25r95CompleteRx()                                                                 st25r95UARTCompleteRx();                                                                              /*!< UART/SPI wrapper for st25r95CompleteRx            */
 #define st25r95IsTransmitTxCompleted()                                                      st25r95UARTIsTransmitTxCompleted()                                                                    /*!< UART/SPI wrapper for st25r95IsTransmitTxCompleted */
 #define st25r95IsInListen()                                                                                                                                                                       /*!< UART/SPI wrapper for st25r95IsInListen            */
-#define st25r95GetLmState()                                                                                                                                                                       /*!< UART/SPI wrapper for st25r95GetLmState            */
+#define st25r95GetLmState(assume)                                                                                                                                                                 /*!< UART/SPI wrapper for st25r95GetLmState            */
 #define st25r95DeactivateACFilter()                                                         RFAL_ERR_NOT_IMPLEMENTED                                                                                   /*!< UART/SPI wrapper for st25r95DeactivateACFilter    */
 #define st25r95SetACState()                                                                                                                                                                       /*!< UART/SPI wrapper for st25r95SetACState            */
 #define st25r95Idle(DacDataL, DacDataH, WUPeriod)                                           st25r95UARTIdle((DacDataL), (DacDataH), (WUPeriod))                                                   /*!< UART/SPI wrapper for st25r95Idle                  */
@@ -648,7 +648,7 @@ extern bool st25r95SPIIsInListen(void);
  *
  *****************************************************************************
  */
-extern rfalLmState st25r95SPIGetLmState(void);
+extern rfalLmState st25r95SPIGetLmState(bool assumeFieldOnAcStateActive);
 
 /*! 
  *****************************************************************************

@@ -1619,7 +1619,7 @@ ReturnCode rfalListenStop( void )
 
 
 /*******************************************************************************/
-ReturnCode rfalListenSleepStart( rfalLmState sleepSt, uint8_t *rxBuf, uint16_t rxBufLen, uint16_t *rxLen )
+ReturnCode rfalListenSleepStart( rfalLmState currSt, rfalLmState sleepSt, uint8_t *rxBuf, uint16_t rxBufLen, uint16_t *rxLen )
 {
     ReturnCode retCode = RFAL_ERR_PARAM;
     
@@ -1631,7 +1631,7 @@ ReturnCode rfalListenSleepStart( rfalLmState sleepSt, uint8_t *rxBuf, uint16_t r
         gRFAL.Lm.rxLen    = rxLen;
         *gRFAL.Lm.rxLen   = 0;
         gRFAL.Lm.dataFlag = false;    
-        rfalListenSetState(sleepSt);
+        rfalListenSetState(currSt, sleepSt);
         retCode = RFAL_ERR_NONE;
     }
     
@@ -1656,7 +1656,7 @@ rfalLmState rfalListenGetState(bool *dataFlag, rfalBitRate *lastBR)
     {
         *dataFlag = gRFAL.Lm.dataFlag;
     }
-    state = st25r95GetLmState();
+    state = st25r95GetLmState(false);
     
     if( ((state == RFAL_LM_STATE_ACTIVE_A) || (state == RFAL_LM_STATE_ACTIVE_Ax)) && gRFAL.cardEmulT4AT )
     {
@@ -1668,7 +1668,7 @@ rfalLmState rfalListenGetState(bool *dataFlag, rfalBitRate *lastBR)
 
 
 /*******************************************************************************/
-ReturnCode rfalListenSetState( rfalLmState newSt )
+ReturnCode rfalListenSetState( rfalLmState currSt, rfalLmState newSt )
 {
     ReturnCode retCode = RFAL_ERR_NONE;
     uint8_t st25r95State;
@@ -1683,7 +1683,9 @@ ReturnCode rfalListenSetState( rfalLmState newSt )
     
     
     WasInListen = st25r95IsInListen();
-    st25r95CommandEcho(); /* kill listen command */
+    // No need to kill the Listen Command if we are not in Listen mode.
+    // save SPI communication time, and improve reply delay !!!
+    if (WasInListen) st25r95CommandEcho(); /* kill listen command */
     gRFAL.cardEmulT4AT = false;
     
     switch (newSt)
@@ -1731,7 +1733,10 @@ ReturnCode rfalListenSetState( rfalLmState newSt )
             gRFAL.cardEmulT4AT = true;
             break;
     }
-    if (retCode == RFAL_ERR_NONE)
+    // Special case when nexSt == RFAL_LM_STATE_CARDEMU_4A and currSt == ST25R95_ACSTATE_ACTIVE
+    // so no need to Set the State to the same value as current one
+    // save SPI communication time, and improve reply delay !!!
+    if (retCode == RFAL_ERR_NONE && (currSt != RFAL_LM_STATE_ACTIVE_A || newSt != RFAL_LM_STATE_CARDEMU_4A))
     {
         st25r95SetACState(st25r95State);
     }
