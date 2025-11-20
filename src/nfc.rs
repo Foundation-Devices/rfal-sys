@@ -103,35 +103,40 @@ impl Nfc {
     }
 }
 
-#[derive(Default)]
-pub struct DataExchange {}
-
+pub struct DataExchange {
+    rx_data_ptr: *mut u8,
+    rcv_len_ptr: *mut u16,
+}
+impl Default for DataExchange {
+    fn default() -> Self {
+        Self {
+            rx_data_ptr: core::ptr::null_mut(),
+            rcv_len_ptr: core::ptr::null_mut(),
+        }
+    }
+}
 impl DataExchange {
-    pub fn start(
-        &self,
-        tx_data: Option<&mut [u8]>,
-        rx_data: &mut [u8],
-        rcv_len: &mut u16,
-        fwt: u32,
-    ) -> Result<()> {
+    pub fn start(&mut self, tx_data: Option<&mut [u8]>, fwt: u32) -> Result<()> {
         let (tx_data, tx_data_len) = if let Some(tx_data) = tx_data {
             (tx_data.as_mut_ptr(), tx_data.len() as u16)
         } else {
             (core::ptr::null_mut(), 0)
         };
-        let mut rx_data_ptr = rx_data.as_mut_ptr();
-        let mut rcv_len_ptr = rcv_len as *mut u16;
         result(unsafe {
             rfal_sys::rfalNfcDataExchangeStart(
                 tx_data,
                 tx_data_len,
-                &mut rx_data_ptr,
-                &mut rcv_len_ptr,
+                &mut self.rx_data_ptr,
+                &mut self.rcv_len_ptr,
                 fwt,
             )
         })
     }
     pub fn get_status(&self) -> Result<()> {
         result(unsafe { rfal_sys::rfalNfcDataExchangeGetStatus() })
+    }
+    pub fn rx_data(&self) -> &'static [u8] {
+        let len = unsafe { *self.rcv_len_ptr };
+        unsafe { core::slice::from_raw_parts(self.rx_data_ptr, len as usize) }
     }
 }
