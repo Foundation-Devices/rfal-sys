@@ -108,7 +108,7 @@
 #define RFAL_ISODEP_DEFAULT_FSCI                RFAL_ISODEP_FSXI_128  /*!< FSCI default value to be used  in Listen Mode        */
 #define RFAL_ISODEP_DEFAULT_FSC                 RFAL_ISODEP_FSX_128   /*!< FSC default value (aligned RFAL_ISODEP_DEFAULT_FSCI) */
 #define RFAL_ISODEP_DEFAULT_SFGI                (0U)                  /*!< SFGI Default value to be used  in Listen Mode        */
-#define RFAL_ISODEP_DEFAULT_FWI                 (12U)                 /*!< Default Listener FWI (Max)      Digital 2.0  B7 & B3 */
+#define RFAL_ISODEP_DEFAULT_FWI                 (11U)                 /*!< Default Listener FWI (Max)      Digital 2.0  B7 & B3 */
 
 #define RFAL_ISODEP_APDU_MAX_LEN                RFAL_ISODEP_FSX_1024  /*!< Max APDU length                                      */
 

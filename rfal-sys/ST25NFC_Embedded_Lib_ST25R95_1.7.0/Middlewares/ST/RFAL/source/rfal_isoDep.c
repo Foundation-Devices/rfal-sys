@@ -144,7 +144,7 @@
 #define ISODEP_PCB_SWTX                 ( ISODEP_PCBSBLOCK | ISODEP_PCB_WTX )             /*!< PCB Value of a S-Block with WTX        */
 #define ISODEP_PCB_SPARAMETERS          ( ISODEP_PCB_SBLOCK | ISODEP_PCB_WTX )            /*!< PCB Value of a S-Block with PARAMETERS */
 
-#define ISODEP_FWI_LIS_MAX_NFC          12U                            /*!< FWT Listener Max FWIT4ATmax FWIBmax  Digital 1.1  A6 & A3  */
+#define ISODEP_FWI_LIS_MAX_NFC          12U                           /*!< FWT Listener Max FWIT4ATmax FWIBmax  Digital 1.1  A6 & A3  */
 #define ISODEP_FWI_LIS_MAX_EMVCO        7U                            /*!< FWT Listener Max FWIMAX       EMVCo 2.6 A.5                */
 #define ISODEP_FWI_LIS_MAX              (uint8_t)((gIsoDep.compMode == RFAL_COMPLIANCE_MODE_EMV) ? ISODEP_FWI_LIS_MAX_EMVCO : ISODEP_FWI_LIS_MAX_NFC)  /*!< FWI Listener Max as NFC / EMVCo */
 #define ISODEP_FWT_LIS_MAX              rfalIsoDepFWI2FWT(ISODEP_FWI_LIS_MAX)             /*!< FWT Listener Max                       */
