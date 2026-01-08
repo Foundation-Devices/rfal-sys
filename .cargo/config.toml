@@ -7,3 +7,6 @@ CROSS_COMPILE = "arm-none-eabi"
 
 [build]
 target = "armv7a-none-eabi"
+rustflags = [
+    "-C", "relocation-model=pie"
+]
