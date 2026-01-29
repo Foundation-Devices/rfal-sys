@@ -952,9 +952,13 @@ static void rfalTransceiveTx(void)
             {
                 transmitFlag |= RFAL_ST25R95_ISO14443A_TOPAZFORMAT;
             }
+            uint8_t savedByte = gRFAL.TxRx.ctx.txBuf[txBufLen];
             gRFAL.TxRx.ctx.txBuf[txBufLen++] = transmitFlag;
 #endif /* RFAL_FEATURE_NFCA */
             st25r95SendData(gRFAL.TxRx.ctx.txBuf, txBufLen, gRFAL.protocol, gRFAL.TxRx.ctx.flags);
+#if RFAL_FEATURE_NFCA
+            gRFAL.TxRx.ctx.txBuf[txBufLen - 1] = savedByte;
+#endif /* RFAL_FEATURE_NFCA */
 
             /* Start FDTPoll SW timer */
             rfalTimerStart( gRFAL.tmr.FDTPoll, (RFAL_ST25R95_SW_TMR_MIN_1MS + rfalConv1fcToMs(gRFAL.timings.FDTPoll)) );
