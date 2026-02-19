@@ -918,6 +918,14 @@ static void rfalTransceiveTx(void)
         /*******************************************************************************/
         case RFAL_TXRX_STATE_TX_TRANSMIT:
 
+            /* Safety check: if txBuf is NULL, abort transceive */
+            if (gRFAL.TxRx.ctx.txBuf == NULL)
+            {
+                gRFAL.TxRx.status = RFAL_ERR_PARAM;
+                gRFAL.TxRx.state  = RFAL_TXRX_STATE_TX_FAIL;
+                break;
+            }
+
             /*******************************************************************************/
             /* Execute Sync Transceive Callback                                             */
             /*******************************************************************************/
