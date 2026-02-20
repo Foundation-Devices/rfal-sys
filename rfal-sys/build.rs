@@ -15,6 +15,7 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     builder
         .flag("-std=c99")
         .flag("-fno-short-enums")
+        .flag("-fno-omit-frame-pointer") // enable full backtrace
         .flag("-mno-unaligned-access") // this is arm-none-eabi dependant
         .pic(true)
         .flag("-fPIC")
