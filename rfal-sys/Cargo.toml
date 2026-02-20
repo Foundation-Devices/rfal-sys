@@ -15,7 +15,9 @@ cty = "0.2.2"
 
 [build-dependencies]
 cc = "1.1.15"
-bindgen = { version = "0.70.1", default-features = false }
+bindgen = { version = "0.70.1", default-features = false, features = [
+  "runtime",
+] }
 
 [profile.release]
 debug = true
