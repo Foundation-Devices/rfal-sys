@@ -1157,7 +1157,13 @@ ndefStatus ndefT2TPollerBeginWriteMessage(ndefContext *ctx, uint32_t messageLen)
     }
 
     /* TS T2T v1.0 7.5.3.4: reset L_Field to 0 */
-    ret = ndefT2TPollerWriteRawMessageLen(ctx, 0U, true);
+    /* Write a complete empty NDEF TLV to ensure the T-field (0x03) is preserved
+     * even if the write is interrupted. Previously only the L-field was written
+     * via WriteRawMessageLen, which lost the T-field through the read-modify-write path. */
+    {
+        static const uint8_t emptyNdef[] = { NDEF_T2T_TLV_NDEF_MESSAGE, 0x00U, NDEF_T2T_TLV_TERMINATOR, 0x00U };
+        ret = ndefT2TPollerWriteBlock(ctx, (uint16_t)(ctx->subCtx.t2t.offsetNdefTLV / NDEF_T2T_BLOCK_SIZE), emptyNdef);
+    }
     if( ret != ERR_NONE )
     {
         /* Conclude procedure */
