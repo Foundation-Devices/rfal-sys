@@ -457,6 +457,7 @@ ndefStatus ndefT2TPollerNdefDetect(ndefContext *ctx, ndefInfo *info)
     uint8_t              majorOffsetSize;
     uint8_t              blplb;
     uint32_t             rsvdAreaFirstByteAddr;
+    uint32_t             rsvdAreaSize;
     uint32_t             i, j;
     uint32_t             maxAddr;
     uint32_t             rsvdAreasLen;
@@ -595,12 +596,17 @@ ndefStatus ndefT2TPollerNdefDetect(ndefContext *ctx, ndefInfo *info)
                     }
                 }
                 ctx->subCtx.t2t.rsvdAreaFirstByteAddr[i] = rsvdAreaFirstByteAddr;
-                ctx->subCtx.t2t.rsvdAreaSize[i]          = ((ctx->subCtx.t2t.dynLockNbrBytes  + 3U)/ 4U) * 4U;
-                if( (rsvdAreaFirstByteAddr + ctx->subCtx.t2t.rsvdAreaSize[i]) > maxAddr )
+                rsvdAreaSize                              = ((ctx->subCtx.t2t.dynLockNbrBytes  + 3U)/ 4U) * 4U;
+                if( rsvdAreaSize > (maxAddr - rsvdAreaFirstByteAddr) )
                 {
-                   ctx->subCtx.t2t.rsvdAreaSize[i] = (uint16_t)(maxAddr - ctx->subCtx.t2t.rsvdAreaSize[i]);
+                   rsvdAreaSize = maxAddr - rsvdAreaFirstByteAddr;
                 }
-                rsvdAreasLen += ctx->subCtx.t2t.rsvdAreaSize[i];
+                if( (rsvdAreasLen > ctx->areaLen) || (rsvdAreaSize > (ctx->areaLen - rsvdAreasLen)) )
+                {
+                   return ERR_REQUEST;
+                }
+                ctx->subCtx.t2t.rsvdAreaSize[i] = (uint16_t)rsvdAreaSize;
+                rsvdAreasLen += rsvdAreaSize;
                 ctx->subCtx.t2t.nbrRsvdAreas++;
             }
         }
@@ -645,12 +651,17 @@ ndefStatus ndefT2TPollerNdefDetect(ndefContext *ctx, ndefInfo *info)
                     }
                 }
                 ctx->subCtx.t2t.rsvdAreaFirstByteAddr[i] = rsvdAreaFirstByteAddr;
-                ctx->subCtx.t2t.rsvdAreaSize[i] = (data[1] == 0U) ? 256U : (uint16_t)data[1];
-                if( (rsvdAreaFirstByteAddr + ctx->subCtx.t2t.rsvdAreaSize[i]) > maxAddr )
+                rsvdAreaSize = (data[1] == 0U) ? 256U : (uint32_t)data[1];
+                if( rsvdAreaSize > (maxAddr - rsvdAreaFirstByteAddr) )
                 {
-                   ctx->subCtx.t2t.rsvdAreaSize[i] = (uint16_t)(maxAddr - ctx->subCtx.t2t.rsvdAreaSize[i]);
+                   rsvdAreaSize = maxAddr - rsvdAreaFirstByteAddr;
                 }
-                rsvdAreasLen += ctx->subCtx.t2t.rsvdAreaSize[i];
+                if( (rsvdAreasLen > ctx->areaLen) || (rsvdAreaSize > (ctx->areaLen - rsvdAreasLen)) )
+                {
+                   return ERR_REQUEST;
+                }
+                ctx->subCtx.t2t.rsvdAreaSize[i] = (uint16_t)rsvdAreaSize;
+                rsvdAreasLen += rsvdAreaSize;
                 ctx->subCtx.t2t.nbrRsvdAreas++;
             }
         }
@@ -687,6 +698,10 @@ ndefStatus ndefT2TPollerNdefDetect(ndefContext *ctx, ndefInfo *info)
                      /* Empty message found TS T2T v1.0 7.5.1.7 & TS T2T v1.0 7.4.4.1 */
                     ctx->state = NDEF_STATE_READONLY;
                 }
+            }
+            if( (rsvdAreasLen > ctx->areaLen) || (ctx->messageOffset > (ctx->areaLen - rsvdAreasLen)) )
+            {
+                return ERR_REQUEST;
             }
             ctx->areaLen -= rsvdAreasLen;
             if( info != NULL )
