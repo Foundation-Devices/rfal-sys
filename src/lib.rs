@@ -32,7 +32,7 @@ pub struct Rfal {
 
 impl Rfal {
     pub fn new(platform: Platform) -> Result<Self> {
-        rfal_sys::rfal_platform_set(platform);
+        rfal_sys::rfal_platform_try_set(platform).map_err(|_| Error::WrongState)?;
         result(unsafe { rfal_sys::rfalInitialize() })?;
         Nfc::initialize()?;
         Ok(Self {
