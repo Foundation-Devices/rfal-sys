@@ -1,10 +1,17 @@
 // SPDX-FileCopyrightText: 2024 Foundation Devices, Inc. <hello@foundation.xyz>
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+#[cfg(feature = "alloc")]
+use alloc::vec::Vec;
+#[cfg(not(feature = "alloc"))]
+use heapless::Vec;
+
 use crate::{
     ndefCapabilityContainer, ndefDeviceType, ndefInfo, ndefState, nfc::Device, result, Error,
     Result,
 };
+
+pub const RAW_MESSAGE_BUF_LEN: usize = 256;
 
 #[derive(Default)]
 pub struct Ndef {
@@ -73,28 +80,66 @@ impl Poller {
     pub fn ndef_ctx_state(&self) -> Option<ndefState> {
         self.ctx.as_ref().map(|ctx| ctx.state)
     }
-    pub fn read_raw_message(&mut self) -> Result<&[u8]> {
+
+    #[cfg(feature = "alloc")]
+    pub fn read_raw_message(&mut self) -> Result<Vec<u8>> {
+        let message_len = self.raw_message_len()?;
+        let mut raw_message = Vec::new();
+        raw_message
+            .try_reserve_exact(message_len)
+            .map_err(|_| Error::NoMem)?;
+        raw_message.resize(message_len, 0);
+
+        let received_len = self.read_raw_message_into(&mut raw_message)?;
+        raw_message.truncate(received_len);
+        Ok(raw_message)
+    }
+
+    #[cfg(not(feature = "alloc"))]
+    pub fn read_raw_message(&mut self) -> Result<Vec<u8, RAW_MESSAGE_BUF_LEN>> {
+        let mut raw_message_buf = [0u8; RAW_MESSAGE_BUF_LEN];
+        let received_len = self.read_raw_message_into(&mut raw_message_buf)?;
+
+        let mut raw_message = Vec::new();
+        raw_message
+            .extend_from_slice(&raw_message_buf[..received_len])
+            .map_err(|_| Error::NoMem)?;
+        Ok(raw_message)
+    }
+
+    pub fn read_raw_message_into(&mut self, buf: &mut [u8]) -> Result<usize> {
         match self.ctx {
             Some(mut ctx) => {
-                let mut raw_message_buf = [0u8; 256];
+                if buf.len() > u32::MAX as usize {
+                    return Err(Error::Param);
+                }
+
                 let mut received_len = 0u32;
-                result(unsafe {
+                let res = unsafe {
                     rfal_sys::ndefPollerReadRawMessage(
                         &mut ctx,
-                        raw_message_buf.as_mut_ptr() as *mut _,
-                        raw_message_buf.len() as u32,
+                        buf.as_mut_ptr() as *mut _,
+                        buf.len() as u32,
                         &mut received_len,
                         true,
                     )
-                })?;
+                };
                 self.ctx.replace(ctx);
-                Ok(unsafe {
-                    core::slice::from_raw_parts(raw_message_buf.as_ptr(), received_len as usize)
-                })
+                result(res)?;
+                checked_received_len(received_len, buf.len())
             }
             None => Err(Error::NotInitialized),
         }
     }
+
+    #[cfg(feature = "alloc")]
+    fn raw_message_len(&self) -> Result<usize> {
+        self.ctx
+            .as_ref()
+            .map(|ctx| ctx.messageLen as usize)
+            .ok_or(Error::NotInitialized)
+    }
+
     pub fn write_raw_message(&mut self, msg: &[u8]) -> Result<()> {
         match self.ctx {
             Some(mut ctx) => {
@@ -116,5 +161,29 @@ impl Poller {
             }
             None => Err(Error::NotInitialized),
         }
+    }
+}
+
+fn checked_received_len(received_len: u32, buffer_len: usize) -> Result<usize> {
+    let received_len = received_len as usize;
+    if received_len > buffer_len {
+        return Err(Error::NoMem);
+    }
+    Ok(received_len)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn checked_received_len_accepts_lengths_within_buffer() {
+        assert_eq!(checked_received_len(3, 4), Ok(3));
+        assert_eq!(checked_received_len(4, 4), Ok(4));
+    }
+
+    #[test]
+    fn checked_received_len_rejects_lengths_beyond_buffer() {
+        assert_eq!(checked_received_len(5, 4), Err(Error::NoMem));
     }
 }

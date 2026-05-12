@@ -5,6 +5,8 @@
 
 #[cfg(feature = "alloc")]
 extern crate alloc;
+#[cfg(test)]
+extern crate std;
 
 mod discover;
 mod error;
