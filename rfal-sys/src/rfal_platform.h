@@ -79,8 +79,17 @@ extern void ffi_spi_flush(void);
 #define platformWaitIrqOutFallingEdge(to)  ffi_wait_irq_out_falling_edge(to)
 
 #define platformGetSysTick()               ffi_get_ticks_ms()                    /*!< Get System Tick ( 1 tick = 1 ms)            */
-#define platformTimerCreate(t)             (platformGetSysTick()+(t))            /*!< Create a timer with the given time (ms)     */
-#define platformTimerIsExpired(timer)      (platformGetSysTick()>=(timer))       /*!< Checks if the given timer is expired        */
+/* The system tick is a free running 32-bit millisecond counter, so it wraps back to
+ * zero about every 49.7 days. Deadlines are therefore compared modulo 2^32: a timer
+ * has expired once the signed difference between the current tick and the deadline
+ * is non negative. Comparing the two values directly would report a timer created
+ * shortly before the wrap, whose deadline wrapped to a small value, as expired on
+ * its very first check.
+ *
+ * This holds for any duration below 2^31 ms (about 24.8 days); RFAL's timeouts are
+ * in the millisecond to second range. */
+#define platformTimerCreate(t)             ((uint32_t)(platformGetSysTick() + (uint32_t)(t)))                  /*!< Create a timer with the given time (ms)     */
+#define platformTimerIsExpired(timer)      (((int32_t)(platformGetSysTick() - (uint32_t)(timer))) >= 0)        /*!< Checks if the given timer is expired        */
 #define platformDelay(t)                   ffi_delay_ms(t)                       /*!< Performs a delay for the given time (ms)    */
 
 #define platformErrorHandle()              ffi_handle_error(__FILE__,__LINE__)   /*!< Global error handler or trap                */
