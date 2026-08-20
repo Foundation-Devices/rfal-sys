@@ -29,6 +29,8 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
         .include(format!("{src_dir}/NDEF/include"))
         .include(format!("{src_dir}/NDEF/include/message"))
         .include(format!("{src_dir}/NDEF/include/poller"))
+        // Compile-time check of the Rust <-> C platform ABI, see src/platform.rs
+        .file("src/ffi_abi_check.c")
         .file(format!("{src_dir}/RFAL/source/st25r95/st25r95.c"))
         .file(format!("{src_dir}/RFAL/source/st25r95/st25r95_com.c"))
         .file(format!("{src_dir}/RFAL/source/st25r95/st25r95_com_spi.c"))

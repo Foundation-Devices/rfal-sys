@@ -51,10 +51,7 @@ extern void ffi_delay_ms(uint32_t delay);
 extern uint32_t ffi_get_ticks_ms(void);
 
 extern void ffi_handle_error(const char *file, int line);
-extern void ffi_log(int val);
-
-extern uint32_t ffi_irq_out(void);
-extern uint32_t ffi_irq_in(void);
+extern void ffi_log(const char *msg, int val);
 
 extern bool ffi_spi_poll_send(void);
 extern void ffi_spi_reset(void);
