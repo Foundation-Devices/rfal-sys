@@ -2,6 +2,12 @@ use std::env;
 use std::path::PathBuf;
 use std::process::Command;
 
+/// Prebuilt Card Emulation object, spliced into the archive after `cc` runs.
+///
+/// The matching `.c` is only distributed by ST on request, so it lives in the
+/// private `rfal-sys-priv` repository and nothing here compiles it.
+const LICENSED_OBJECT: &str = "licensed/723cc7b38d33199c-st25r95_com_ce.o";
+
 pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     let src_dir = "ST25NFC_Embedded_Lib_ST25R95_1.7.0/Middlewares/ST";
     let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
@@ -10,6 +16,95 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     env::set_var("CXX", "arm-none-eabi-g++");
     env::set_var("AR", "arm-none-eabi-ar");
     env::set_var("RANLIB", "arm-none-eabi-ranlib");
+
+    // Include directories of the native build. They are also the directories
+    // Cargo is asked to watch, which is what covers the transitive headers and
+    // the rfal_features.h / ndef_config.h configuration headers.
+    let includes = [
+        format!("{src_dir}/st25r_common/firmware/STM/utils/Inc"),
+        format!("{src_dir}/RFAL/source/st25r95"),
+        format!("{src_dir}/RFAL/include"),
+        format!("{src_dir}/NDEF/include"),
+        format!("{src_dir}/NDEF/include/message"),
+        format!("{src_dir}/NDEF/include/poller"),
+    ];
+
+    // Compiled translation units. Only a subset of the NDEF type and message
+    // sources is enabled, to save flash; uncomment one to add a type.
+    let sources = [
+        // Compile-time check of the Rust <-> C platform ABI, see src/platform.rs
+        "src/ffi_abi_check.c".to_string(),
+        format!("{src_dir}/RFAL/source/st25r95/st25r95.c"),
+        format!("{src_dir}/RFAL/source/st25r95/st25r95_com.c"),
+        format!("{src_dir}/RFAL/source/st25r95/st25r95_com_spi.c"),
+        format!("{src_dir}/RFAL/source/st25r95/rfal_rfst25r95.c"),
+        format!("{src_dir}/RFAL/source/rfal_st25tb.c"),
+        format!("{src_dir}/RFAL/source/rfal_st25xv.c"),
+        format!("{src_dir}/RFAL/source/rfal_analogConfig.c"),
+        format!("{src_dir}/RFAL/source/rfal_crc.c"),
+        format!("{src_dir}/RFAL/source/rfal_iso15693_2.c"),
+        format!("{src_dir}/RFAL/source/rfal_nfc.c"),
+        format!("{src_dir}/RFAL/source/rfal_nfca.c"),
+        format!("{src_dir}/RFAL/source/rfal_nfcb.c"),
+        format!("{src_dir}/RFAL/source/rfal_nfcf.c"),
+        format!("{src_dir}/RFAL/source/rfal_nfcv.c"),
+        format!("{src_dir}/RFAL/source/rfal_isoDep.c"),
+        format!("{src_dir}/RFAL/source/rfal_nfcDep.c"),
+        format!("{src_dir}/RFAL/source/rfal_t1t.c"),
+        format!("{src_dir}/RFAL/source/rfal_t2t.c"),
+        format!("{src_dir}/RFAL/source/rfal_t4t.c"),
+        format!("{src_dir}/NDEF/source/message/ndef_record.c"),
+        // format!("{src_dir}/NDEF/source/message/ndef_types.c"),
+        // format!("{src_dir}/NDEF/source/message/ndef_type_aar.c"),
+        // format!("{src_dir}/NDEF/source/message/ndef_type_bluetooth.c"),
+        // format!("{src_dir}/NDEF/source/message/ndef_type_deviceinfo.c"),
+        // format!("{src_dir}/NDEF/source/message/ndef_type_empty.c"),
+        // format!("{src_dir}/NDEF/source/message/ndef_type_flat.c"),
+        // format!("{src_dir}/NDEF/source/message/ndef_type_media.c"),
+        // format!("{src_dir}/NDEF/source/message/ndef_type_text.c"),
+        // format!("{src_dir}/NDEF/source/message/ndef_type_tnep.c"),
+        // format!("{src_dir}/NDEF/source/message/ndef_type_uri.c"),
+        // format!("{src_dir}/NDEF/source/message/ndef_type_vcard.c"),
+        // format!("{src_dir}/NDEF/source/message/ndef_type_wifi.c"),
+        // format!("{src_dir}/NDEF/source/message/ndef_type_wlc.c"),
+        // format!("{src_dir}/NDEF/source/message/ndef_type_wpcwlc.c"),
+        format!("{src_dir}/NDEF/source/message/ndef_message.c"),
+        format!("{src_dir}/NDEF/source/poller/ndef_t2t.c"),
+        format!("{src_dir}/NDEF/source/poller/ndef_t3t.c"),
+        format!("{src_dir}/NDEF/source/poller/ndef_t4t.c"),
+        format!("{src_dir}/NDEF/source/poller/ndef_t5t.c"),
+        format!("{src_dir}/NDEF/source/poller/ndef_t5t_rf.c"),
+        format!("{src_dir}/NDEF/source/poller/ndef_poller.c"),
+        format!("{src_dir}/NDEF/source/poller/ndef_poller_rf.c"),
+        format!("{src_dir}/NDEF/source/poller/ndef_poller_message.c"),
+    ];
+
+    // Root headers handed to bindgen. Exposing a new C function means adding the
+    // header that declares it here.
+    let headers = [
+        format!("{src_dir}/RFAL/include/rfal_utils.h"),
+        format!("{src_dir}/RFAL/include/rfal_nfc.h"),
+        format!("{src_dir}/RFAL/include/rfal_nfca.h"),
+        format!("{src_dir}/RFAL/include/rfal_nfcb.h"),
+        format!("{src_dir}/RFAL/include/rfal_rf.h"),
+        // format!("{src_dir}/NDEF/include/message/ndef_buffer.h"),
+        // format!("{src_dir}/NDEF/include/message/ndef_record.h"),
+        // format!("{src_dir}/NDEF/include/message/ndef_message.h"),
+        // format!("{src_dir}/NDEF/include/message/ndef_type_aar.h"),
+        // format!("{src_dir}/NDEF/include/message/ndef_type_bluetooth.h"),
+        // format!("{src_dir}/NDEF/include/message/ndef_type_deviceinfo.h"),
+        // format!("{src_dir}/NDEF/include/message/ndef_type_empty.h"),
+        // format!("{src_dir}/NDEF/include/message/ndef_type_flat.h"),
+        // format!("{src_dir}/NDEF/include/message/ndef_type_media.h"),
+        // format!("{src_dir}/NDEF/include/message/ndef_type_text.h"),
+        // format!("{src_dir}/NDEF/include/message/ndef_type_tnep.h"),
+        // format!("{src_dir}/NDEF/include/message/ndef_type_uri.h"),
+        // format!("{src_dir}/NDEF/include/message/ndef_type_vcard.h"),
+        // format!("{src_dir}/NDEF/include/message/ndef_type_wifi.h"),
+        // format!("{src_dir}/NDEF/include/message/ndef_type_wlc.h"),
+        // format!("{src_dir}/NDEF/include/message/ndef_type_wpcwlc.h"),
+        format!("{src_dir}/NDEF/include/poller/ndef_poller.h"),
+    ];
 
     let mut builder = cc::Build::new();
     builder
@@ -22,60 +117,10 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
         .define("ST25R95", "true")
         .define("ST25R95_DEBUG", "false")
         .define("ST25R95_INTERFACE_SPI", "true")
+        // src/ comes first so rfal_platform.h shadows ST's own platform header
         .include("src")
-        .include(format!("{src_dir}/st25r_common/firmware/STM/utils/Inc"))
-        .include(format!("{src_dir}/RFAL/source/st25r95"))
-        .include(format!("{src_dir}/RFAL/include"))
-        .include(format!("{src_dir}/NDEF/include"))
-        .include(format!("{src_dir}/NDEF/include/message"))
-        .include(format!("{src_dir}/NDEF/include/poller"))
-        // Compile-time check of the Rust <-> C platform ABI, see src/platform.rs
-        .file("src/ffi_abi_check.c")
-        .file(format!("{src_dir}/RFAL/source/st25r95/st25r95.c"))
-        .file(format!("{src_dir}/RFAL/source/st25r95/st25r95_com.c"))
-        .file(format!("{src_dir}/RFAL/source/st25r95/st25r95_com_spi.c"))
-        .file(format!("{src_dir}/RFAL/source/st25r95/rfal_rfst25r95.c"))
-        .file(format!("{src_dir}/RFAL/source/rfal_st25tb.c"))
-        .file(format!("{src_dir}/RFAL/source/rfal_st25xv.c"))
-        .file(format!("{src_dir}/RFAL/source/rfal_analogConfig.c"))
-        .file(format!("{src_dir}/RFAL/source/rfal_crc.c"))
-        .file(format!("{src_dir}/RFAL/source/rfal_iso15693_2.c"))
-        .file(format!("{src_dir}/RFAL/source/rfal_nfc.c"))
-        .file(format!("{src_dir}/RFAL/source/rfal_nfca.c"))
-        .file(format!("{src_dir}/RFAL/source/rfal_nfcb.c"))
-        .file(format!("{src_dir}/RFAL/source/rfal_nfcf.c"))
-        .file(format!("{src_dir}/RFAL/source/rfal_nfcv.c"))
-        .file(format!("{src_dir}/RFAL/source/rfal_isoDep.c"))
-        .file(format!("{src_dir}/RFAL/source/rfal_nfcDep.c"))
-        .file(format!("{src_dir}/RFAL/source/rfal_t1t.c"))
-        .file(format!("{src_dir}/RFAL/source/rfal_t2t.c"))
-        .file(format!("{src_dir}/RFAL/source/rfal_t4t.c"))
-        .file(format!("{src_dir}/NDEF/source/message/ndef_record.c"))
-        // .file(format!("{src_dir}/NDEF/source/message/ndef_types.c"))
-        // .file(format!("{src_dir}/NDEF/source/message/ndef_type_aar.c"))
-        // .file(format!("{src_dir}/NDEF/source/message/ndef_type_bluetooth.c"))
-        // .file(format!("{src_dir}/NDEF/source/message/ndef_type_deviceinfo.c"))
-        // .file(format!("{src_dir}/NDEF/source/message/ndef_type_empty.c"))
-        // .file(format!("{src_dir}/NDEF/source/message/ndef_type_flat.c"))
-        // .file(format!("{src_dir}/NDEF/source/message/ndef_type_media.c"))
-        // .file(format!("{src_dir}/NDEF/source/message/ndef_type_text.c"))
-        // .file(format!("{src_dir}/NDEF/source/message/ndef_type_tnep.c"))
-        // .file(format!("{src_dir}/NDEF/source/message/ndef_type_uri.c"))
-        // .file(format!("{src_dir}/NDEF/source/message/ndef_type_vcard.c"))
-        // .file(format!("{src_dir}/NDEF/source/message/ndef_type_wifi.c"))
-        // .file(format!("{src_dir}/NDEF/source/message/ndef_type_wlc.c"))
-        // .file(format!("{src_dir}/NDEF/source/message/ndef_type_wpcwlc.c"))
-        .file(format!("{src_dir}/NDEF/source/message/ndef_message.c"))
-        .file(format!("{src_dir}/NDEF/source/poller/ndef_t2t.c"))
-        .file(format!("{src_dir}/NDEF/source/poller/ndef_t3t.c"))
-        .file(format!("{src_dir}/NDEF/source/poller/ndef_t4t.c"))
-        .file(format!("{src_dir}/NDEF/source/poller/ndef_t5t.c"))
-        .file(format!("{src_dir}/NDEF/source/poller/ndef_t5t_rf.c"))
-        .file(format!("{src_dir}/NDEF/source/poller/ndef_poller.c"))
-        .file(format!("{src_dir}/NDEF/source/poller/ndef_poller_rf.c"))
-        .file(format!(
-            "{src_dir}/NDEF/source/poller/ndef_poller_message.c"
-        ));
+        .includes(&includes)
+        .files(&sources);
     builder.compile("rfal-sys");
 
     // post-process the archive file to add the licensed object
@@ -83,7 +128,7 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     archiver.args([
         "r",
         out_dir.join("librfal-sys.a").to_str().unwrap(),
-        "licensed/723cc7b38d33199c-st25r95_com_ce.o",
+        LICENSED_OBJECT,
     ]);
     let status = archiver.status().expect("failed to run archiver");
     assert!(status.success());
@@ -118,29 +163,11 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
         .expect("Failed to get nixpkg_path directory");
     // println!("cargo:warning=nixpkg_path: {}", nixpkg_path.display());
 
-    bindgen::Builder::default()
-        .header(format!("{src_dir}/RFAL/include/rfal_utils.h"))
-        .header(format!("{src_dir}/RFAL/include/rfal_nfc.h"))
-        .header(format!("{src_dir}/RFAL/include/rfal_nfca.h"))
-        .header(format!("{src_dir}/RFAL/include/rfal_nfcb.h"))
-        .header(format!("{src_dir}/RFAL/include/rfal_rf.h"))
-        // .header(format!("{src_dir}/NDEF/include/message/ndef_buffer.h"))
-        // .header(format!("{src_dir}/NDEF/include/message/ndef_record.h"))
-        // .header(format!("{src_dir}/NDEF/include/message/ndef_message.h"))
-        // .header(format!("{src_dir}/NDEF/include/message/ndef_type_aar.h"))
-        // .header(format!("{src_dir}/NDEF/include/message/ndef_type_bluetooth.h"))
-        // .header(format!("{src_dir}/NDEF/include/message/ndef_type_deviceinfo.h"))
-        // .header(format!("{src_dir}/NDEF/include/message/ndef_type_empty.h"))
-        // .header(format!("{src_dir}/NDEF/include/message/ndef_type_flat.h"))
-        // .header(format!("{src_dir}/NDEF/include/message/ndef_type_media.h"))
-        // .header(format!("{src_dir}/NDEF/include/message/ndef_type_text.h"))
-        // .header(format!("{src_dir}/NDEF/include/message/ndef_type_tnep.h"))
-        // .header(format!("{src_dir}/NDEF/include/message/ndef_type_uri.h"))
-        // .header(format!("{src_dir}/NDEF/include/message/ndef_type_vcard.h"))
-        // .header(format!("{src_dir}/NDEF/include/message/ndef_type_wifi.h"))
-        // .header(format!("{src_dir}/NDEF/include/message/ndef_type_wlc.h"))
-        // .header(format!("{src_dir}/NDEF/include/message/ndef_type_wpcwlc.h"))
-        .header(format!("{src_dir}/NDEF/include/poller/ndef_poller.h"))
+    let mut bindings = bindgen::Builder::default();
+    for header in &headers {
+        bindings = bindings.header(header);
+    }
+    bindings = bindings
         .rustified_enum("ndefDeviceType")
         .rustified_enum("ndefState")
         .rustified_enum("rfal14443AShortFrameCmd")
@@ -171,12 +198,11 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
         .rustified_enum("rfalWumPeriod")
         .rustified_enum("rfalWumState")
         .clang_arg("--target=armv7a-none-eabi")
-        .clang_arg("-I./src")
-        .clang_arg(format!("-I./{src_dir}/st25r_common/firmware/STM/utils/Inc"))
-        .clang_arg(format!("-I./{src_dir}/RFAL/source/st25r95"))
-        .clang_arg(format!("-I./{src_dir}/RFAL/include"))
-        .clang_arg(format!("-I./{src_dir}/NDEF/include"))
-        .clang_arg(format!("-I./{src_dir}/NDEF/include/message"))
+        .clang_arg("-I./src");
+    for include in &includes {
+        bindings = bindings.clang_arg(format!("-I./{include}"));
+    }
+    bindings
         .clang_arg("-nostdinc") // Disable standard includes (useful for bare-metal)
         .clang_arg(format!("-I{}/include", version_path.display()))
         .clang_arg(format!("-I{}/arm-none-eabi/include", nixpkg_path.display())) // This one resolve in `/usr/arm-none-eabi/include` on ubuntu, which doesn't exists but doesn't prevet building
@@ -188,10 +214,21 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
         .write_to_file(out_dir.join("bindings.rs"))
         .expect("Couldn't write bindings!");
 
-    println!("cargo:rerun-if-changed=src/lib.rs");
-    println!("cargo:rerun-if-changed=rfal_platform.h");
-    println!("cargo:rerun-if-changed=rfal_features.h");
-    println!("cargo:rerun-if-changed=ndef_config.h");
+    // Declare every input of the native build, so Cargo reruns this script when
+    // one of them changes and only then. The include directories are emitted as
+    // directories: Cargo scans them recursively, which covers the transitive
+    // headers and the rfal_features.h / ndef_config.h configuration headers. The
+    // ST doc/ directories sit outside them and are therefore ignored.
+    //
+    // src/ is deliberately not emitted as a directory: only these two files are
+    // inputs, and watching the whole directory would rebuild the C sources on
+    // every edit to the Rust ones.
+    println!("cargo:rerun-if-changed=build.rs");
+    println!("cargo:rerun-if-changed=src/rfal_platform.h");
+    println!("cargo:rerun-if-changed={LICENSED_OBJECT}");
+    for path in includes.iter().chain(sources.iter()).chain(headers.iter()) {
+        println!("cargo:rerun-if-changed={path}");
+    }
 
     Ok(())
 }
