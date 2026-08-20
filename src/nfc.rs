@@ -6,6 +6,8 @@ use alloc::vec::Vec;
 #[cfg(not(feature = "alloc"))]
 use heapless::Vec;
 
+use core::marker::PhantomData;
+
 use crate::{result, rfalNfcDevType, rfalNfcState, rfalNfcaListenDevice, Error, Result};
 use rfal_sys::rfalNfcDevice;
 
@@ -27,25 +29,40 @@ impl Device {
     }
 }
 
-#[derive(Default)]
+/// Handle over RFAL's NFC state machine.
+///
+/// Only reachable through [`Rfal`][crate::Rfal]. Every method driving the state
+/// machine takes `&mut self`, because it mutates the same C globals as all the
+/// other operations: the discovered device list, the active device pointer and
+/// the transceive buffers.
 pub struct Nfc {
     pub data_exchange: DataExchange,
+    /// The handles must stay on the execution context driving RFAL: they are
+    /// public fields of [`Rfal`][crate::Rfal] and could otherwise be moved out of
+    /// it and sent to another thread or task.
+    _not_send_sync: PhantomData<*const ()>,
 }
 
 impl Nfc {
-    pub fn initialize() -> Result<()> {
+    pub(crate) fn new() -> Self {
+        Self {
+            data_exchange: DataExchange::new(),
+            _not_send_sync: PhantomData,
+        }
+    }
+    pub(crate) fn initialize() -> Result<()> {
         result(unsafe { rfal_sys::rfalNfcInitialize() })
     }
     pub fn state(&self) -> rfalNfcState {
         unsafe { rfal_sys::rfalNfcGetState() }
     }
-    pub fn worker(&self) {
+    pub fn worker(&mut self) {
         unsafe {
             rfal_sys::rfalNfcWorker();
         }
     }
     #[cfg(feature = "alloc")]
-    pub fn get_devices_found(&self) -> Result<Vec<Device>> {
+    pub fn get_devices_found(&mut self) -> Result<Vec<Device>> {
         let mut dev_list: *mut rfalNfcDevice = core::ptr::null_mut();
         let mut dev_cnt: u8 = 0;
         result(unsafe { rfal_sys::rfalNfcGetDevicesFound(&mut dev_list, &mut dev_cnt) })?;
@@ -58,7 +75,7 @@ impl Nfc {
         Ok(devices)
     }
     #[cfg(not(feature = "alloc"))]
-    pub fn get_devices_found(&self) -> Result<Vec<Device, 4>> {
+    pub fn get_devices_found(&mut self) -> Result<Vec<Device, 4>> {
         let mut dev_list: *mut rfalNfcDevice = core::ptr::null_mut();
         let mut dev_cnt: u8 = 0;
         result(unsafe { rfal_sys::rfalNfcGetDevicesFound(&mut dev_list, &mut dev_cnt) })?;
@@ -70,39 +87,44 @@ impl Nfc {
         };
         Ok(devices)
     }
-    pub fn select(&self, dev_idx: u8) -> Result<()> {
+    pub fn select(&mut self, dev_idx: u8) -> Result<()> {
         result(unsafe { rfal_sys::rfalNfcSelect(dev_idx) })
     }
-    pub fn active_device(&self) -> Result<Device> {
+    pub fn active_device(&mut self) -> Result<Device> {
         let mut dev: *mut rfalNfcDevice = core::ptr::null_mut();
         result(unsafe { rfal_sys::rfalNfcGetActiveDevice(&mut dev) })?;
         Ok(unsafe { Device(*dev) })
     }
-    pub fn deactivate_and_idle(&self) -> Result<()> {
+    pub fn deactivate_and_idle(&mut self) -> Result<()> {
         result(unsafe {
             rfal_sys::rfalNfcDeactivate(rfal_sys::rfalNfcDeactivateType::RFAL_NFC_DEACTIVATE_IDLE)
         })
     }
-    pub fn deactivate_and_sleep(&self) -> Result<()> {
+    pub fn deactivate_and_sleep(&mut self) -> Result<()> {
         result(unsafe {
             rfal_sys::rfalNfcDeactivate(rfal_sys::rfalNfcDeactivateType::RFAL_NFC_DEACTIVATE_SLEEP)
         })
     }
-    pub fn deactivate_and_discovery(&self) -> Result<()> {
+    pub fn deactivate_and_discovery(&mut self) -> Result<()> {
         result(unsafe {
             rfal_sys::rfalNfcDeactivate(
                 rfal_sys::rfalNfcDeactivateType::RFAL_NFC_DEACTIVATE_DISCOVERY,
             )
         })
     }
-    pub fn enter_wakeup_mode(&self) -> Result<()> {
+    pub fn enter_wakeup_mode(&mut self) -> Result<()> {
         result(unsafe { rfal_sys::rfalWakeUpModeStart(core::ptr::null()) })
     }
-    pub fn exit_wakeup_mode(&self) -> Result<()> {
+    pub fn exit_wakeup_mode(&mut self) -> Result<()> {
         result(unsafe { rfal_sys::rfalWakeUpModeStop() })
     }
 }
 
+/// Handle over RFAL's data exchange.
+///
+/// Only reachable through [`Nfc`], which is itself only reachable through
+/// [`Rfal`][crate::Rfal]: the pointers it keeps refer to the singleton transceive
+/// buffers, so a second handle would alias them.
 pub struct DataExchange {
     rx_data_ptr: *mut u8,
     rcv_len_ptr: *mut u16,
@@ -117,17 +139,15 @@ enum DataExchangeState {
     Failed(Error),
 }
 
-impl Default for DataExchange {
-    fn default() -> Self {
+impl DataExchange {
+    pub(crate) fn new() -> Self {
         Self {
             rx_data_ptr: core::ptr::null_mut(),
             rcv_len_ptr: core::ptr::null_mut(),
             state: DataExchangeState::Idle,
         }
     }
-}
 
-impl DataExchange {
     pub fn start(&mut self, tx_data: Option<&mut [u8]>, fwt: u32) -> Result<()> {
         self.reset();
 

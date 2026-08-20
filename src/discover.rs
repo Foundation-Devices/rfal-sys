@@ -1,14 +1,24 @@
 // SPDX-FileCopyrightText: 2024 Foundation Devices, Inc. <hello@foundation.xyz>
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+use core::marker::PhantomData;
+
 use crate::{result, rfalNfcDiscoverParam, Result};
 
+/// Discovery configuration.
+///
+/// Only reachable through [`Rfal`][crate::Rfal]: starting a discovery mutates
+/// RFAL's C globals, so it requires exclusive access to the owning handle.
 pub struct Discover {
     pub params: rfalNfcDiscoverParam,
+    /// The handles must stay on the execution context driving RFAL: they are
+    /// public fields of [`Rfal`][crate::Rfal] and could otherwise be moved out of
+    /// it and sent to another thread or task.
+    _not_send_sync: PhantomData<*const ()>,
 }
 
-impl Default for Discover {
-    fn default() -> Self {
+impl Discover {
+    pub(crate) fn new() -> Self {
         // allocate default values manually, thanks bingen to not deriving Default trait...
         let params = rfalNfcDiscoverParam {
             compMode: rfal_sys::rfalComplianceMode::RFAL_COMPLIANCE_MODE_NFC,
@@ -57,12 +67,16 @@ impl Default for Discover {
                 },
             },
         };
-        Self { params }
+        Self {
+            params,
+            _not_send_sync: PhantomData,
+        }
     }
-}
 
-impl Discover {
-    pub fn start(&self) -> Result<()> {
+    /// Starts the discovery loop with the current [`params`][Self::params].
+    ///
+    /// RFAL copies the parameters, so later changes only apply to the next call.
+    pub fn start(&mut self) -> Result<()> {
         result(unsafe { rfal_sys::rfalNfcDiscover(&self.params as *const _) })
     }
 }

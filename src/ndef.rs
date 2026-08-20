@@ -6,6 +6,8 @@ use alloc::vec::Vec;
 #[cfg(not(feature = "alloc"))]
 use heapless::Vec;
 
+use core::marker::PhantomData;
+
 use crate::{
     ndefCapabilityContainer, ndefDeviceType, ndefInfo, ndefState, nfc::Device, result, Error,
     Result,
@@ -13,17 +15,36 @@ use crate::{
 
 pub const RAW_MESSAGE_BUF_LEN: usize = 256;
 
-#[derive(Default)]
+/// Handle over the NDEF pollers.
+///
+/// Only reachable through [`Rfal`][crate::Rfal]: the poller operations run RF
+/// transactions through the same RFAL globals as [`Nfc`][crate::Nfc].
 pub struct Ndef {
     pub poller: Poller,
+    /// The handles must stay on the execution context driving RFAL: they are
+    /// public fields of [`Rfal`][crate::Rfal] and could otherwise be moved out of
+    /// it and sent to another thread or task.
+    _not_send_sync: PhantomData<*const ()>,
 }
 
-#[derive(Default)]
+impl Ndef {
+    pub(crate) fn new() -> Self {
+        Self {
+            poller: Poller::new(),
+            _not_send_sync: PhantomData,
+        }
+    }
+}
+
 pub struct Poller {
     ctx: Option<rfal_sys::ndefContext>,
 }
 
 impl Poller {
+    pub(crate) fn new() -> Self {
+        Self { ctx: None }
+    }
+
     pub fn initialize(&mut self, nfc_dev: &Device) -> Result<()> {
         // allocate default values manually, thanks bingen to not deriving Default trait...
         let mut ndef_ctx = rfal_sys::ndefContext {
