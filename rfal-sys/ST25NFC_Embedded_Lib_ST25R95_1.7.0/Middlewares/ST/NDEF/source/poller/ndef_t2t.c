@@ -149,6 +149,8 @@ static ndefStatus ndefT2TPollerReadBlock(ndefContext *ctx, uint16_t blockAddr, u
 static ndefStatus ndefT2TPollerWriteBlock(ndefContext *ctx, uint16_t blockAddr, const uint8_t *buf);
 #endif /* NDEF_FEATURE_FULL_API */
 
+static ndefStatus ndefT2TInsertRsvdArea(ndefContext *ctx, uint32_t firstByteAddr, uint32_t size, uint32_t maxAddr, uint32_t *rsvdAreasLen);
+
 /*
  ******************************************************************************
  * GLOBAL FUNCTIONS
@@ -445,6 +447,90 @@ ndefStatus ndefT2TPollerContextInitialization(ndefContext *ctx, const ndefDevice
 }
 
 /*******************************************************************************/
+/*!
+ *****************************************************************************
+ * \brief Insert a reserved area into the context's sorted reserved area list
+ *
+ * Keeps rsvdAreaFirstByteAddr/rsvdAreaSize sorted by address, clips the area to
+ * the end of the data area and rejects areas overlapping an already recorded one.
+ *
+ * \param[in]     ctx           : ndef context
+ * \param[in]     firstByteAddr : first byte address of the reserved area
+ * \param[in]     size          : size of the reserved area
+ * \param[in]     maxAddr       : first address past the end of the data area
+ * \param[in,out] rsvdAreasLen  : running total of the reserved areas length
+ *
+ * \return ERR_PARAM   : Invalid parameter
+ * \return ERR_REQUEST : List full, overlapping area, or reserved areas bigger
+ *                       than the data area
+ * \return ERR_NONE    : No error
+ *****************************************************************************
+ */
+static ndefStatus ndefT2TInsertRsvdArea(ndefContext *ctx, uint32_t firstByteAddr, uint32_t size, uint32_t maxAddr, uint32_t *rsvdAreasLen)
+{
+    uint32_t i;
+    uint32_t j;
+    uint32_t lvSize = size;
+    uint32_t curAddr;
+    uint32_t curSize;
+
+    if( (ctx == NULL) || (ctx->type != NDEF_DEV_T2T) || (rsvdAreasLen == NULL) || (firstByteAddr >= maxAddr) )
+    {
+        return ERR_PARAM;
+    }
+
+    if( ctx->subCtx.t2t.nbrRsvdAreas >= NDEF_T2T_MAX_RSVD_AREAS )
+    {
+        return ERR_REQUEST;
+    }
+
+    /* Clip the area to the end of the data area */
+    if( lvSize > (maxAddr - firstByteAddr) )
+    {
+        lvSize = maxAddr - firstByteAddr;
+    }
+
+    if( (*rsvdAreasLen > ctx->areaLen) || (lvSize > (ctx->areaLen - *rsvdAreasLen)) )
+    {
+        return ERR_REQUEST;
+    }
+
+    /* Look for the insertion point keeping the list sorted by address. The list is
+     * sorted and non overlapping, so ruling out an overlap with the first entry
+     * located after the new area rules out an overlap with all the following ones. */
+    for( i = 0; i < ctx->subCtx.t2t.nbrRsvdAreas; i++ )
+    {
+        curAddr = ctx->subCtx.t2t.rsvdAreaFirstByteAddr[i];
+        curSize = ctx->subCtx.t2t.rsvdAreaSize[i];
+
+        if( (firstByteAddr < (curAddr + curSize)) && (curAddr < (firstByteAddr + lvSize)) )
+        {
+            /* Duplicated or overlapping area */
+            return ERR_REQUEST;
+        }
+        if( firstByteAddr < curAddr )
+        {
+            break;
+        }
+    }
+
+    /* Shift the following entries up, starting from the last one, so that an entry
+     * is never overwritten before it has been copied. */
+    for( j = ctx->subCtx.t2t.nbrRsvdAreas; j > i; j-- )
+    {
+        ctx->subCtx.t2t.rsvdAreaFirstByteAddr[j] = ctx->subCtx.t2t.rsvdAreaFirstByteAddr[j - 1U];
+        ctx->subCtx.t2t.rsvdAreaSize[j]          = ctx->subCtx.t2t.rsvdAreaSize[j - 1U];
+    }
+
+    ctx->subCtx.t2t.rsvdAreaFirstByteAddr[i] = firstByteAddr;
+    ctx->subCtx.t2t.rsvdAreaSize[i]          = (uint16_t)lvSize;
+    ctx->subCtx.t2t.nbrRsvdAreas++;
+    *rsvdAreasLen += lvSize;
+
+    return ERR_NONE;
+}
+
+/*******************************************************************************/
 ndefStatus ndefT2TPollerNdefDetect(ndefContext *ctx, ndefInfo *info)
 {
     ndefStatus           ret;
@@ -458,7 +544,6 @@ ndefStatus ndefT2TPollerNdefDetect(ndefContext *ctx, ndefInfo *info)
     uint8_t              blplb;
     uint32_t             rsvdAreaFirstByteAddr;
     uint32_t             rsvdAreaSize;
-    uint32_t             i, j;
     uint32_t             maxAddr;
     uint32_t             rsvdAreasLen;
 
@@ -583,31 +668,13 @@ ndefStatus ndefT2TPollerNdefDetect(ndefContext *ctx, ndefInfo *info)
             rsvdAreaFirstByteAddr                    = ctx->subCtx.t2t.dynLockFirstByteAddr;
             if( rsvdAreaFirstByteAddr < maxAddr)
             {
-                for( i = 0; i < ctx->subCtx.t2t.nbrRsvdAreas; i++ )
+                rsvdAreaSize = ((ctx->subCtx.t2t.dynLockNbrBytes  + 3U)/ 4U) * 4U;
+                ret = ndefT2TInsertRsvdArea(ctx, rsvdAreaFirstByteAddr, rsvdAreaSize, maxAddr, &rsvdAreasLen);
+                if( ret != ERR_NONE )
                 {
-                    if( rsvdAreaFirstByteAddr < ctx->subCtx.t2t.rsvdAreaFirstByteAddr[i] )
-                    {
-                        for(j = i; j < ctx->subCtx.t2t.nbrRsvdAreas; j++)
-                        {
-                            ctx->subCtx.t2t.rsvdAreaFirstByteAddr[j + 1U] = ctx->subCtx.t2t.rsvdAreaFirstByteAddr[j];
-                            ctx->subCtx.t2t.rsvdAreaSize[j + 1U]          = ctx->subCtx.t2t.rsvdAreaSize[j];
-                        }
-                        break;
-                    }
+                    /* Conclude procedure */
+                    return ret;
                 }
-                ctx->subCtx.t2t.rsvdAreaFirstByteAddr[i] = rsvdAreaFirstByteAddr;
-                rsvdAreaSize                              = ((ctx->subCtx.t2t.dynLockNbrBytes  + 3U)/ 4U) * 4U;
-                if( rsvdAreaSize > (maxAddr - rsvdAreaFirstByteAddr) )
-                {
-                   rsvdAreaSize = maxAddr - rsvdAreaFirstByteAddr;
-                }
-                if( (rsvdAreasLen > ctx->areaLen) || (rsvdAreaSize > (ctx->areaLen - rsvdAreasLen)) )
-                {
-                   return ERR_REQUEST;
-                }
-                ctx->subCtx.t2t.rsvdAreaSize[i] = (uint16_t)rsvdAreaSize;
-                rsvdAreasLen += rsvdAreaSize;
-                ctx->subCtx.t2t.nbrRsvdAreas++;
             }
         }
         if( typeTLV == NDEF_T2T_TLV_MEMORY_CTRL )
@@ -638,31 +705,13 @@ ndefStatus ndefT2TPollerNdefDetect(ndefContext *ctx, ndefInfo *info)
             rsvdAreaFirstByteAddr = (nbrMajorOffsets * ((uint32_t)1U << majorOffsetSize)) + nbrMinorOffsets;
             if( rsvdAreaFirstByteAddr < maxAddr)
             {
-                for( i = 0; i < ctx->subCtx.t2t.nbrRsvdAreas; i++ )
-                {
-                    if( rsvdAreaFirstByteAddr < ctx->subCtx.t2t.rsvdAreaFirstByteAddr[i] )
-                    {
-                        for(j = i; j < ctx->subCtx.t2t.nbrRsvdAreas; j++)
-                        {
-                            ctx->subCtx.t2t.rsvdAreaFirstByteAddr[j + 1U] = ctx->subCtx.t2t.rsvdAreaFirstByteAddr[j];
-                            ctx->subCtx.t2t.rsvdAreaSize[j + 1U]          = ctx->subCtx.t2t.rsvdAreaSize[j];
-                        }
-                        break;
-                    }
-                }
-                ctx->subCtx.t2t.rsvdAreaFirstByteAddr[i] = rsvdAreaFirstByteAddr;
                 rsvdAreaSize = (data[1] == 0U) ? 256U : (uint32_t)data[1];
-                if( rsvdAreaSize > (maxAddr - rsvdAreaFirstByteAddr) )
+                ret = ndefT2TInsertRsvdArea(ctx, rsvdAreaFirstByteAddr, rsvdAreaSize, maxAddr, &rsvdAreasLen);
+                if( ret != ERR_NONE )
                 {
-                   rsvdAreaSize = maxAddr - rsvdAreaFirstByteAddr;
+                    /* Conclude procedure */
+                    return ret;
                 }
-                if( (rsvdAreasLen > ctx->areaLen) || (rsvdAreaSize > (ctx->areaLen - rsvdAreasLen)) )
-                {
-                   return ERR_REQUEST;
-                }
-                ctx->subCtx.t2t.rsvdAreaSize[i] = (uint16_t)rsvdAreaSize;
-                rsvdAreasLen += rsvdAreaSize;
-                ctx->subCtx.t2t.nbrRsvdAreas++;
             }
         }
         /* NDEF message present TLV TS T2T v1.0 7.5.1.4 */
