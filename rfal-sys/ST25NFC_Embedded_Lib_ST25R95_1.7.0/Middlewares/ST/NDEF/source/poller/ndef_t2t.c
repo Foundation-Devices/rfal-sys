@@ -1220,13 +1220,36 @@ ndefStatus ndefT2TPollerBeginWriteMessage(ndefContext *ctx, uint32_t messageLen)
         return ERR_WRONG_STATE;
     }
 
-    /* TS T2T v1.0 7.5.3.4: reset L_Field to 0 */
-    /* Write a complete empty NDEF TLV to ensure the T-field (0x03) is preserved
-     * even if the write is interrupted. Previously only the L-field was written
-     * via WriteRawMessageLen, which lost the T-field through the read-modify-write path. */
+    /* TS T2T v1.0 7.5.3.4: reset L_Field to 0, and make sure the T field is set so
+     * that the NDEF TLV stays well formed on a freshly formatted tag (SFT-6754).
+     *
+     * offsetNdefTLV is a logical offset: it excludes the reserved areas and is not
+     * necessarily block aligned. Both fields must therefore go through the
+     * available-area aware byte writer, which translates the offset to its physical
+     * position and preserves every other byte of the blocks it touches.
+     *
+     * The L field is written before the T field so that an interrupted sequence
+     * never leaves a valid T field in front of a stale length. */
     {
-        static const uint8_t emptyNdef[] = { NDEF_T2T_TLV_NDEF_MESSAGE, 0x00U, NDEF_T2T_TLV_TERMINATOR, 0x00U };
-        ret = ndefT2TPollerWriteBlock(ctx, (uint16_t)(ctx->subCtx.t2t.offsetNdefTLV / NDEF_T2T_BLOCK_SIZE), emptyNdef);
+        uint8_t  fieldBuf[NDEF_T2T_TLV_L_1_BYTES_LEN + 1U];
+        uint32_t fieldLen;
+
+        fieldBuf[0] = 0x00U;                        /* L: empty message */
+        fieldLen    = NDEF_T2T_TLV_L_1_BYTES_LEN;
+
+        /* Append the Terminator TLV when it fits in the data area */
+        if( (ctx->subCtx.t2t.offsetNdefTLV + NDEF_T2T_TLV_T_LEN + fieldLen) < (ctx->areaLen + NDEF_T2T_AREA_OFFSET) )
+        {
+            fieldBuf[fieldLen] = NDEF_T2T_TLV_TERMINATOR;
+            fieldLen++;
+        }
+
+        ret = ndefT2TPollerWriteBytesToAvailableAreas(ctx, ctx->subCtx.t2t.offsetNdefTLV + NDEF_T2T_TLV_T_LEN, fieldBuf, fieldLen, false, false);
+        if( ret == ERR_NONE )
+        {
+            fieldBuf[0] = NDEF_T2T_TLV_NDEF_MESSAGE; /* T */
+            ret = ndefT2TPollerWriteBytesToAvailableAreas(ctx, ctx->subCtx.t2t.offsetNdefTLV, fieldBuf, NDEF_T2T_TLV_T_LEN, false, false);
+        }
     }
     if( ret != ERR_NONE )
     {
