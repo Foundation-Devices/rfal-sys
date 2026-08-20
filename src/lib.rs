@@ -22,8 +22,8 @@ pub use nfc::*;
 pub use rfal_sys::{
     ndefCapabilityContainer, ndefCapabilityContainerT1T, ndefCapabilityContainerT2T,
     ndefDeviceType, ndefInfo, ndefState, rfalBitRate, rfalComplianceMode, rfalLmNfcidLen,
-    rfalNfcDevType, rfalNfcDiscoverParam, rfalNfcState, rfalNfcaListenDevice, Platform,
-    RFAL_FWT_NONE, RFAL_NFC_LISTEN_TECH_A, RFAL_NFC_POLL_TECH_A, RFAL_NFC_TECH_NONE,
+    rfalNfcDevType, rfalNfcDiscoverParam, rfalNfcRfInterface, rfalNfcState, rfalNfcaListenDevice,
+    Platform, RFAL_FWT_NONE, RFAL_NFC_LISTEN_TECH_A, RFAL_NFC_POLL_TECH_A, RFAL_NFC_TECH_NONE,
 };
 
 /// Owner of the RFAL native state.
